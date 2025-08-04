@@ -182,41 +182,29 @@ function App() {
         </section>
       </main>
 
-      {/* Chat input docked at bottom */}
-      <footer className="chat-footer">
-        <form className="chat-form" onSubmit={handleSend} autoComplete="off">
-          <textarea
-            className="chat-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleInputKey}
-            placeholder={pending ? "Awaiting response..." : "Type your message..."}
-            rows={1}
-            maxLength={2000}
-            disabled={pending}
-            aria-label="Message"
-            required
-          />
-          <button
-            className="btn-send"
-            type="submit"
-            disabled={pending || !input.trim()}
-            aria-label="Send"
-          >
-            {pending ? "..." : "➤"}
-          </button>
-          <button
-            className="btn-clear"
-            type="button"
-            disabled={pending || messages.length === 0}
-            aria-label="Clear chat"
-            onClick={handleClear}
-          >
-            🗑️
-          </button>
-        </form>
-        {error && <div className="chat-error" role="alert">{error}</div>}
-      </footer>
+      {/* Chat input fixed at bottom */}
+      <form className="chat-form" onSubmit={handleSend} autoComplete="off">
+        <textarea
+          className="chat-input"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleInputKey}
+          placeholder={pending ? "Awaiting response..." : "Type your message..."}
+          rows={1}
+          maxLength={2000}
+          disabled={pending}
+          aria-label="Message"
+          required
+        />
+        <button
+          className="btn-send"
+          type="submit"
+          disabled={pending || !input.trim()}
+          aria-label="Send"
+        >
+          {pending ? "..." : "➤"}
+        </button>
+      </form>
     </div>
   );
 }

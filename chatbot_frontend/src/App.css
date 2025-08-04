@@ -32,7 +32,7 @@
 body,
 .App {
   min-height: 100vh;
-  background: var(--bg-primary);
+  background: #2c363f !important;
   color: var(--text-color);
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   transition: background 0.3s, color 0.2s;
@@ -125,8 +125,8 @@ body,
   background: var(--primary);
 }
 .chat-user .chat-bubble {
-  background: var(--bubble-user);
-  color: #fff;
+  background: #9fb4c7 !important;
+  color: #2c363f !important;
   border-radius: 18px 6px 19px 20px;
   align-items: flex-end;
 }
@@ -198,39 +198,54 @@ body,
 }
 
 /* FOOTER: Chat Input */
-.chat-footer {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -1px 8px 0 rgba(0,0,0,0.06);
-  width: 100vw;
-  z-index: 200;
-  padding: 0;
-}
-
+/* Remove footer dock styling, style chat-form at bottom always */
 .chat-form {
   display: flex;
   gap: 0.7rem;
-  align-items: flex-end;
-  max-width: 710px;
+  align-items: center;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 1.1rem 0.8rem;
+  padding: 0.6rem 1.2rem;
+  background: transparent;
+  z-index: 101;
+  border-radius: 32px;
+  box-shadow: none;
+  width: 100%;
+  justify-content: center;
 }
 
 .chat-input {
   flex: 1;
-  background: var(--bg-chat);
-  color: var(--text-color);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 14px 16px 14px;
-  font-size: 1.05rem;
-  min-height: 36px;
+  background: #f5f6fa;
+  color: #2c363f;
+  border: none;
+  outline: none;
+  border-radius: 24px;
+  padding: 16px 20px 16px 20px;
+  font-size: 1.07rem;
+  min-height: 38px;
   max-height: 92px;
   resize: none;
-  transition: border 0.17s;
+  box-shadow: 0 2px 12px 0 rgba(51,61,73,0.12);
+  transition: border 0.17s, box-shadow 0.16s;
+  margin-right: 0.75rem;
 }
+
+.chat-input:disabled {
+  background: #e0e0e0;
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+/* Hide .chat-footer */
+.chat-footer {
+  display: none;
+}
+
 .chat-input:disabled {
   background: var(--bg-secondary);
   opacity: 0.78;
