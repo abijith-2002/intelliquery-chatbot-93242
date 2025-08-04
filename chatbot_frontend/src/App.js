@@ -154,26 +154,42 @@ function App() {
   // --- Layout ---
   return (
     <div className="App">
-      {/* Header/Nav */}
+      {/* Header (redesigned) */}
       <header className="chat-header">
         <div className="brand">
-          <span role="img" aria-label="query">💬</span> IntelliQuery Chatbot
+          <span className="header-icon" aria-label="info">
+            {/* Info icon as SVG for crisp, consistent look */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="11" fill="#262e3b" stroke="#346EF1" strokeWidth="2"/>
+              <text x="12" y="17" textAnchor="middle" fontSize="11" fontFamily="Arial" fill="#7ac8f3" fontWeight="600">i</text>
+            </svg>
+          </span>
+          Knowledge Bot
         </div>
-        <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+        {/* Help/Profile button (pill-shaped) */}
+        <button
+          className="profile-pill"
+          type="button"
+          tabIndex={0}
+          aria-label="How to test"
+          title="How to test the chatbot"
+          // Optionally you can add a click handler for user help flow
+        >
+          How to test
         </button>
       </header>
 
       {/* Main Layout */}
       <main className="chat-main">
-        {/* Sidebar (optional - future for chat sessions/history) */}
-        {/* <aside className="chat-sidebar"></aside> */}
-
         {/* Chat Area */}
         <section className="chat-area" aria-live="polite">
+          {/* System error (top, only if error present) */}
+          {error && <div className="chat-error" role="alert">{error}</div>}
+
+          {/* Welcome message (if no messages) */}
           {messages.length === 0 ? (
             <div className="chat-empty">
-              <p>Welcome! Ask me anything about our knowledge base or Gemini AI 🔍</p>
+              Welcome! Ask anything about our knowledge base or Gemini AI.
             </div>
           ) : (
             messages.map((msg, idx) => renderMessage(msg, idx))
@@ -185,25 +201,37 @@ function App() {
       {/* Chat input docked at bottom */}
       <footer className="chat-footer">
         <form className="chat-form" onSubmit={handleSend} autoComplete="off">
-          <textarea
-            className="chat-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleInputKey}
-            placeholder={pending ? "Awaiting response..." : "Type your message..."}
-            rows={1}
-            maxLength={2000}
-            disabled={pending}
-            aria-label="Message"
-            required
-          />
+          <div className="chat-input-wrap">
+            <textarea
+              className="chat-input"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleInputKey}
+              placeholder={pending ? "Awaiting response..." : "Type your message..."}
+              rows={1}
+              maxLength={2000}
+              disabled={pending}
+              aria-label="Message"
+              autoFocus
+              required
+            />
+          </div>
           <button
             className="btn-send"
             type="submit"
             disabled={pending || !input.trim()}
             aria-label="Send"
           >
-            {pending ? "..." : "➤"}
+            {/* SVG right arrow for send (per design) */}
+            {pending
+              ? <span style={{ fontSize: "1.24em" }}>...</span>
+              : (
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="12" fill="none"/>
+                  <path d="M7 12h9m0 0l-4-4m4 4l-4 4" stroke="#fff" strokeWidth="2.35" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )
+            }
           </button>
           <button
             className="btn-clear"
@@ -211,11 +239,11 @@ function App() {
             disabled={pending || messages.length === 0}
             aria-label="Clear chat"
             onClick={handleClear}
+            title="Clear your chat history"
           >
             🗑️
           </button>
         </form>
-        {error && <div className="chat-error" role="alert">{error}</div>}
       </footer>
     </div>
   );
