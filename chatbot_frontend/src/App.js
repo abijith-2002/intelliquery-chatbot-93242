@@ -27,6 +27,126 @@ function generateSessionId() {
   return id;
 }
 
+// --- COMPONENT DEFINITIONS (moved outside App to prevent recreation on re-renders) ---
+
+/**
+ * Header component with avatar and title
+ */
+const Header = React.memo(() => {
+  return (
+    <header className="chat-header">
+      <div className="header-avatar" aria-label="Knowledge Bot Avatar">
+        K
+      </div>
+      <h1 className="header-title">Knowledge Bot</h1>
+    </header>
+  );
+});
+
+/**
+ * Empty state component shown when no messages exist
+ */
+const EmptyState = React.memo(() => {
+  return (
+    <div className="empty-state">
+      <p>Welcome! Ask me anything to get started.</p>
+    </div>
+  );
+});
+
+/**
+ * User message component - renders as right-aligned bubble
+ */
+const UserMessage = React.memo(({ message }) => {
+  return (
+    <div className="message-row user-message">
+      <div className="user-bubble">
+        <div>{message.query}</div>
+        <span className="message-timestamp">
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+/**
+ * AI message component - renders as left-aligned full-width text without bubble
+ */
+const AIMessage = React.memo(({ message }) => {
+  return (
+    <div className="message-row ai-message">
+      <div className="ai-content">
+        <div className="ai-section">
+          <span className="ai-label">Gemini Response:</span>
+          <div className="ai-text">{message.gemini_answer}</div>
+        </div>
+        <div className="ai-section secondary">
+          <span className="ai-label">RAG Response:</span>
+          <div className="ai-text">{message.rag_answer}</div>
+        </div>
+        <span className="message-timestamp">
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+/**
+ * Error message component - renders as left-aligned full-width with error styling
+ */
+const ErrorMessage = React.memo(({ message }) => {
+  return (
+    <div className="message-row error-message">
+      <div className="error-content">
+        <span className="error-icon" role="img" aria-label="Error">⚠️</span>
+        {message.error}
+        <span className="message-timestamp">
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+/**
+ * Message list component that renders all messages
+ */
+const MessageList = React.memo(({ messages }) => {
+  if (!messages.length) {
+    return <EmptyState />;
+  }
+
+  return (
+    <div className="message-list" role="log" aria-live="polite" aria-label="Chat messages">
+      {messages.map((message, index) => {
+        // Use unique keys based on timestamp and content to prevent unnecessary re-renders
+        const key = `${message.timestamp}-${message.role}-${index}`;
+        switch (message.role) {
+          case "user":
+            return <UserMessage key={key} message={message} />;
+          case "assistant":
+            return <AIMessage key={key} message={message} />;
+          case "error":
+            return <ErrorMessage key={key} message={message} />;
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
+});
+
 // PUBLIC_INTERFACE
 function App() {
   // --- State Management ---
@@ -57,7 +177,7 @@ function App() {
   // --- Chat Handlers ---
   
   // PUBLIC_INTERFACE
-  async function handleSend(e) {
+  const handleSend = React.useCallback(async (e) => {
     if (e) e.preventDefault();
     if (!input.trim() || pending) return;
     
@@ -110,147 +230,26 @@ function App() {
       setPending(false);
       inputRef.current?.focus();
     }
-  }
+  }, [input, pending]);
 
   // PUBLIC_INTERFACE
-  function handleInputKeyDown(e) {
+  const handleInputKeyDown = React.useCallback((e) => {
     if (e.key === "Enter" && !e.shiftKey && !pending) {
       e.preventDefault();
       handleSend();
     }
-  }
+  }, [handleSend, pending]);
 
   // PUBLIC_INTERFACE
-  function handleClear() {
+  const handleClear = React.useCallback(() => {
     setMessages([]);
     localStorage.removeItem("conversation");
     setError(null);
     inputRef.current?.focus();
-  }
+  }, []);
 
-  // --- COMPONENTS ---
-
-  /**
-   * Header component with avatar and title
-   */
-  function Header() {
-    return (
-      <header className="chat-header">
-        <div className="header-avatar" aria-label="Knowledge Bot Avatar">
-          K
-        </div>
-        <h1 className="header-title">Knowledge Bot</h1>
-      </header>
-    );
-  }
-
-  /**
-   * Empty state component shown when no messages exist
-   */
-  function EmptyState() {
-    return (
-      <div className="empty-state">
-        <p>Welcome! Ask me anything to get started.</p>
-      </div>
-    );
-  }
-
-  /**
-   * User message component - renders as right-aligned bubble
-   */
-  function UserMessage({ message }) {
-    return (
-      <div className="message-row user-message">
-        <div className="user-bubble">
-          <div>{message.query}</div>
-          <span className="message-timestamp">
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * AI message component - renders as left-aligned full-width text without bubble
-   */
-  function AIMessage({ message }) {
-    return (
-      <div className="message-row ai-message">
-        <div className="ai-content">
-          <div className="ai-section">
-            <span className="ai-label">Gemini Response:</span>
-            <div className="ai-text">{message.gemini_answer}</div>
-          </div>
-          <div className="ai-section secondary">
-            <span className="ai-label">RAG Response:</span>
-            <div className="ai-text">{message.rag_answer}</div>
-          </div>
-          <span className="message-timestamp">
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * Error message component - renders as left-aligned full-width with error styling
-   */
-  function ErrorMessage({ message }) {
-    return (
-      <div className="message-row error-message">
-        <div className="error-content">
-          <span className="error-icon" role="img" aria-label="Error">⚠️</span>
-          {message.error}
-          <span className="message-timestamp">
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * Message list component that renders all messages
-   */
-  function MessageList({ messages }) {
-    if (!messages.length) {
-      return <EmptyState />;
-    }
-
-    return (
-      <div className="message-list" role="log" aria-live="polite" aria-label="Chat messages">
-        {messages.map((message, index) => {
-          switch (message.role) {
-            case "user":
-              return <UserMessage key={index} message={message} />;
-            case "assistant":
-              return <AIMessage key={index} message={message} />;
-            case "error":
-              return <ErrorMessage key={index} message={message} />;
-            default:
-              return null;
-          }
-        })}
-        <div ref={chatEndRef} />
-      </div>
-    );
-  }
-
-  /**
-   * Chat input component with form controls
-   */
-  function ChatInput() {
+  // Memoized ChatInput component to prevent recreation
+  const ChatInput = React.useMemo(() => {
     return (
       <div className="chat-input-container">
         <form className="chat-form" onSubmit={handleSend}>
@@ -292,7 +291,7 @@ function App() {
         </form>
       </div>
     );
-  }
+  }, [input, pending, handleSend, handleInputKeyDown, handleClear, messages.length]);
 
   // --- MAIN RENDER ---
   return (
@@ -301,9 +300,10 @@ function App() {
       <main className="chat-main">
         <div className="chat-container">
           <MessageList messages={messages} />
+          <div ref={chatEndRef} />
         </div>
       </main>
-      <ChatInput />
+      {ChatInput}
     </div>
   );
 }
