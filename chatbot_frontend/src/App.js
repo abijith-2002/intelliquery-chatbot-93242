@@ -178,17 +178,20 @@ function App() {
               </div>
             );
           } else if (msg.role === "assistant") {
-            // New: FULL WIDTH, LEFT-ALIGNED, NO bubble, just plain text for both Gemini and RAG. No avatar.
+            // AI messages as proper bubbles with avatar
             return (
               <div className="cq-msg-row cq-msg-ai-row" key={idx}>
+                <div className="cq-avatar" aria-label="Bot">
+                  <span role="img" aria-label="Bot">🤖</span>
+                </div>
                 <div className="cq-msg-ai-content">
                   <div className="cq-msg-ai-block">
                     <span className="cq-msg-ai-label">Gemini:</span>
-                    <span className="cq-msg-ai-text">{msg.gemini_answer}</span>
+                    <div className="cq-msg-ai-text">{msg.gemini_answer}</div>
                   </div>
                   <div className="cq-msg-ai-block cq-msg-secondary">
                     <span className="cq-msg-ai-label">RAG:</span>
-                    <span className="cq-msg-ai-text">{msg.rag_answer}</span>
+                    <div className="cq-msg-ai-text">{msg.rag_answer}</div>
                   </div>
                   <span className="cq-meta">
                     {new Date(msg.timestamp).toLocaleTimeString([], {

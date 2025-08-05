@@ -1,8 +1,8 @@
-/* CHATBOT UI: Custom design from assets/chat_ui_design_notes.md */
+/* CHATBOT UI: Updated design from assets/chat_messages_design_notes.md */
 /* Palette */
 :root {
-  --cq-bg-canvas: #2D3840;
-  --cq-primary-text: #fff;
+  --cq-bg-canvas: #3a4047;
+  --cq-primary-text: #ffffff;
   --cq-secondary-text: #C8CED3;
   --cq-accent-blue: #3C98F5;
   --cq-avatar-blue: #3C98F5;
@@ -10,16 +10,22 @@
   --cq-send-btn-icon: #fff;
   --cq-input-bg: #232C34;
   --cq-input-placeholder: #7B8996;
-  --cq-bot-bubble-bg: #263151;
+  --cq-bot-bubble-bg: #4a5258;
   --cq-bubble-error-bg: #25344a;
   --cq-bubble-error-border: #36b1ff;
-  --cq-user-bubble-bg: #3c98f5;
-  --cq-user-bubble-text: #fff;
+  --cq-user-bubble-bg: #4a9eff;
+  --cq-user-bubble-text: #ffffff;
+  --cq-ai-bubble-bg: #4a5258;
+  --cq-ai-bubble-text: #e8eaed;
   --cq-header-padding: 18px;
   --cq-radius-full: 24px;
   --cq-radius-small: 12px;
-  --cq-meta-size: 13px;
-  --cq-font: 'Helvetica Neue', Arial, sans-serif;
+  --cq-meta-size: 11px;
+  --cq-font: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --message-border-radius: 16px;
+  --message-border-radius-small: 4px;
+  --message-font-size: 14px;
+  --message-line-height: 1.4;
 }
 
 body,
@@ -105,18 +111,27 @@ body,
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* Ensures messages start from the top, not bottom */
   justify-content: flex-start;
   gap: 0;
+  padding: 16px 24px;
 }
 
 .cq-msg-row {
   display: flex;
   align-items: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   gap: 0.9rem;
   width: 100%;
 }
+
+.cq-msg-row:not(:last-child) {
+  margin-bottom: 16px;
+}
+
+.cq-msg-row + .cq-msg-row[data-same-sender="true"] {
+  margin-bottom: 8px;
+}
+
 .cq-msg-user {
   flex-direction: row-reverse;
   justify-content: flex-end;
@@ -146,18 +161,19 @@ body,
 }
 
 .cq-msg-bubble {
-  max-width: 75vw;
+  max-width: 70%;
   min-width: 54px;
-  padding: 16px 20px 13px 19px;
-  font-size: 1.07rem;
-  line-height: 1.5;
+  padding: var(--message-padding, 12px 16px);
+  font-size: var(--message-font-size);
+  line-height: var(--message-line-height);
   position: relative;
-  box-shadow: 0 1px 9px 0 rgba(30,30,50,0.06);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   word-break: break-word;
-  border-radius: var(--cq-radius-full);
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  font-family: var(--cq-font);
+  transition: all 0.2s ease;
 }
 
 .cq-msg-row.cq-msg-user {
@@ -168,94 +184,105 @@ body,
 .cq-bubble-user {
   background: var(--cq-user-bubble-bg);
   color: var(--cq-user-bubble-text);
-  border-radius: 22px 16px 16px 15px;
+  border-radius: var(--message-border-radius) var(--message-border-radius-small) var(--message-border-radius) var(--message-border-radius);
   align-items: flex-end;
-  margin-left: 24vw; /* right align user bubble, but not all the way to edge */
-  margin-right: 0;
-  box-shadow: 0 1px 9px 0 rgba(60,152,245,0.07);
+  margin: 4px 0px 4px 20%;
+}
+
+.cq-bubble-user:hover {
+  filter: brightness(0.9);
 }
 
 .cq-msg-row.cq-msg-user .cq-msg-bubble {
   align-items: flex-end;
 }
 
-/* --- NEW: AI/Assistant response as plain text --- */
+/* AI/Assistant response as bubbles */
 .cq-msg-row.cq-msg-ai-row {
   width: 100%;
   justify-content: flex-start;
-  align-items: stretch;
-  margin-bottom: 20px;
-  /* No gap needed: no avatar, just text */
+  align-items: flex-end;
+  margin-bottom: 16px;
+  gap: 0.9rem;
 }
+
+.cq-bubble-ai {
+  background: var(--cq-ai-bubble-bg);
+  color: var(--cq-ai-bubble-text);
+  border-radius: var(--message-border-radius-small) var(--message-border-radius) var(--message-border-radius) var(--message-border-radius);
+  margin: 4px 20% 4px 0px;
+  max-width: 70%;
+}
+
+.cq-bubble-ai:hover {
+  filter: brightness(1.1);
+}
+
+/* Bot bubbles for errors and general bot messages */
+.cq-msg-bot > .cq-msg-bubble,
+.cq-bubble-bot {
+  background: var(--cq-ai-bubble-bg);
+  color: var(--cq-ai-bubble-text);
+  border-radius: var(--message-border-radius-small) var(--message-border-radius) var(--message-border-radius) var(--message-border-radius);
+  margin: 4px 20% 4px 0px;
+}
+
+.cq-bubble-bot:hover {
+  filter: brightness(1.1);
+}
+
+/* AI content styling for multiple responses */
 .cq-msg-ai-content {
-  background: none !important;
-  color: var(--cq-primary-text);
-  width: 100%;
-  padding-left: 0px;
-  padding-right: 0px;
-  box-shadow: none;
-  border-radius: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.19em;
+  gap: 0.5em;
+  max-width: 70%;
 }
+
 .cq-msg-ai-block {
-  margin-bottom: 1px;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.55em;
-  width: 100%;
-  /* The text will wrap to next line naturally, full width */
+  background: var(--cq-ai-bubble-bg);
+  color: var(--cq-ai-bubble-text);
+  border-radius: var(--message-border-radius-small) var(--message-border-radius) var(--message-border-radius) var(--message-border-radius);
+  padding: var(--message-padding, 12px 16px);
+  font-size: var(--message-font-size);
+  line-height: var(--message-line-height);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
 }
+
+.cq-msg-ai-block:hover {
+  filter: brightness(1.1);
+}
+
 .cq-msg-ai-label {
   font-weight: 600;
   color: var(--cq-accent-blue);
-  margin-right: 3px;
-  font-size: 1.04em;
-  min-width: 54px;
-  display: inline-block;
-  letter-spacing: 0.01em;
-}
-.cq-msg-ai-text {
-  color: var(--cq-primary-text);
-  font-weight: 400;
-  font-size: 1.07em;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  /* Make it as plain as possible, no background */
-  background: none;
-  border-radius: 0;
+  font-size: 0.9em;
+  margin-bottom: 4px;
+  display: block;
 }
 
-/* Subtle difference for RAG/secondary
-   You can tune font style/opacity to differentiate if needed */
+.cq-msg-ai-text {
+  color: var(--cq-ai-bubble-text);
+  font-weight: 400;
+  line-height: var(--message-line-height);
+  white-space: pre-wrap;
+}
+
+/* Secondary AI response styling */
+.cq-msg-ai-block.cq-msg-secondary {
+  opacity: 0.9;
+}
+
 .cq-msg-ai-block.cq-msg-secondary .cq-msg-ai-label {
   color: var(--cq-secondary-text);
   font-weight: 500;
 }
+
 .cq-msg-ai-block.cq-msg-secondary .cq-msg-ai-text {
   color: var(--cq-secondary-text);
-  opacity: 0.92;
   font-style: italic;
-}
-
-/* Error bubbles kept as bot-style bubble (see .cq-bubble-error) */
-
-
-.cq-msg-bot > .cq-msg-bubble,
-.cq-bubble-bot {
-  background: var(--cq-bot-bubble-bg);
-  color: var(--cq-primary-text);
-  border-radius: 1.6em 2.2em 1.55em 1.6em;
-}
-.cq-bubble-user {
-  background: var(--cq-user-bubble-bg);
-  color: var(--cq-user-bubble-text);
-  border-radius: 2.2em 1.6em 1.6em 1.55em;
-  align-items: flex-end;
-}
-.cq-msg-row.cq-msg-user .cq-msg-bubble {
-  align-items: flex-end;
 }
 
 .cq-msg-section {
@@ -275,11 +302,20 @@ body,
 
 .cq-meta {
   display: block;
-  text-align: right;
   color: var(--cq-secondary-text);
   font-size: var(--cq-meta-size);
-  margin-top: 6px;
-  margin-right: 2px;
+  font-weight: 400;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+.cq-msg-user .cq-meta {
+  text-align: right;
+}
+
+.cq-msg-bot .cq-meta,
+.cq-msg-ai-row .cq-meta {
+  text-align: left;
 }
 
 /* BOT ERROR BUBBLE (error as "assistant" bubble) */
@@ -422,8 +458,18 @@ body,
     width: 99vw;
     padding: 0 0.4rem;
   }
-  .cq-bubble-user, .cq-bubble-bot, .cq-bubble-error {
-    font-size: 0.98em;
+  .cq-message-list {
+    padding: 16px 12px;
+  }
+  .cq-msg-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+  }
+  .cq-bubble-user, .cq-bubble-bot, .cq-bubble-error, .cq-bubble-ai {
+    font-size: var(--message-font-size);
+  }
+  .cq-msg-ai-block {
+    padding: 10px 14px;
   }
   .cq-meta {
     font-size: 12px;
@@ -435,6 +481,34 @@ body,
     font-size: 1em;
   }
 }
+
+@media (min-width: 1200px) {
+  .cq-chat-container {
+    max-width: 800px;
+  }
+  .cq-msg-bubble {
+    max-width: 60%;
+  }
+  .cq-msg-ai-content {
+    max-width: 60%;
+  }
+}
+/* Message animations */
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cq-msg-row {
+  animation: messageSlideIn 0.3s ease-out;
+}
+
 ::-webkit-scrollbar {
   width: 7px;
   background: #202833;
