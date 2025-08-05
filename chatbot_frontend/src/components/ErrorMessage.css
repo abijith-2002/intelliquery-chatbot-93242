@@ -1,0 +1,170 @@
+/* Error Message Component Styles */
+.error-message {
+  background: linear-gradient(135deg, var(--error), #c0392b);
+  color: #ffffff;
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  margin: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  animation: slideInError 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.error-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.error-text {
+  flex: 1;
+}
+
+.error-text strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+.error-text p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.error-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.error-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.error-button:active {
+  transform: translateY(0);
+}
+
+.retry-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.dismiss-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 16px;
+}
+
+/* Animations */
+@keyframes slideInError {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .error-message {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .error-content {
+    gap: var(--spacing-sm);
+  }
+  
+  .error-icon {
+    font-size: 20px;
+  }
+  
+  .error-text strong {
+    font-size: 15px;
+  }
+  
+  .error-text p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-message {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .error-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .retry-button {
+    flex: 1;
+  }
+}
+
+/* Focus states for accessibility */
+.error-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .error-message {
+    border-width: 2px;
+    border-color: #ffffff;
+  }
+  
+  .error-button {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .error-message {
+    animation: none;
+  }
+  
+  .error-button {
+    transition: none;
+  }
+}

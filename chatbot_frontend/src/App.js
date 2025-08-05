@@ -1,4 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import Header from './components/Header';
+import ChatMessage, { LoadingMessage } from './components/ChatMessage';
+import ChatInput from './components/ChatInput';
+import ErrorMessage from './components/ErrorMessage';
 import "./App.css";
 
 /**
@@ -12,7 +16,8 @@ import "./App.css";
  */
 
 // Configuration
-const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/chat";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
  * Generate or retrieve persistent session ID from localStorage
@@ -21,7 +26,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/chat
 function generateSessionId() {
   let id = localStorage.getItem("chat_session_id");
   if (!id) {
-    id = "session-" + Math.random().toString(36).substr(2, 10);
+    id = "session-" + Math.random().toString(36).substr(2, 12) + "-" + Date.now();
     localStorage.setItem("chat_session_id", id);
   }
   return id;
@@ -38,7 +43,7 @@ function App() {
   
   const [messages, setMessages] = useState(() => {
     try {
-      const stored = localStorage.getItem("conversation");
+      const stored = localStorage.getItem("conversation_history");
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.warn("Failed to load conversation history:", error);
@@ -46,12 +51,13 @@ function App() {
     }
   });
   
-  const [pending, setPending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [retryableMessage, setRetryableMessage] = useState(null);
   
   // Refs
   const chatEndRef = useRef(null);
-  const inputRef = useRef(null);
+  const sessionId = useRef(generateSessionId());
 
   // Effects
   useEffect(() => {
@@ -66,32 +72,41 @@ function App() {
     }
     
     // Persist conversation to localStorage
-    localStorage.setItem("conversation", JSON.stringify(messages));
+    try {
+      localStorage.setItem("conversation_history", JSON.stringify(messages));
+    } catch (error) {
+      console.warn("Failed to save conversation history:", error);
+    }
   }, [messages]);
 
   // PUBLIC_INTERFACE
   /**
    * Toggle between light and dark themes
    */
-  const toggleTheme = () => {
+  const handleThemeToggle = useCallback(() => {
     setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
-  };
+  }, []);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Handle input change
+   * @param {Event} e - Input change event
+   */
+  const handleInputChange = useCallback((e) => {
+    setInput(e.target.value);
+  }, []);
 
   // PUBLIC_INTERFACE
   /**
    * Handle message submission
    * @param {Event} e - Form submission event
    */
-  async function handleSend(e) {
+  const handleSendMessage = useCallback(async (e) => {
     e.preventDefault();
     
     const trimmedInput = input.trim();
-    if (!trimmedInput || pending) return;
+    if (!trimmedInput || isLoading) return;
 
-    setPending(true);
-    setError(null);
-
-    // Add user message optimistically
     const userMessage = {
       role: "user",
       query: trimmedInput,
@@ -100,22 +115,26 @@ function App() {
     
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInput("");
+    setIsLoading(true);
+    setError(null);
+    setRetryableMessage(trimmedInput);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(CHAT_ENDPOINT, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
           "Accept": "application/json"
         },
         body: JSON.stringify({
-          session_id: generateSessionId(),
+          session_id: sessionId.current,
           query: trimmedInput,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
       }
 
       const data = await response.json();
@@ -123,12 +142,13 @@ function App() {
       // Add assistant response
       const assistantMessage = {
         role: "assistant",
-        rag_answer: data.rag_answer || "No RAG response available",
+        rag_answer: data.rag_answer || "No knowledge base response available",
         gemini_answer: data.gemini_answer || "No Gemini response available",
         timestamp: Date.now(),
       };
       
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
+      setRetryableMessage(null);
       
     } catch (err) {
       console.error("Chat error:", err);
@@ -139,216 +159,121 @@ function App() {
       setInput(trimmedInput); // Restore input
       
     } finally {
-      setPending(false);
-      
-      // Focus back to input after response
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
+      setIsLoading(false);
     }
-  }
+  }, [input, isLoading]);
 
   // PUBLIC_INTERFACE
   /**
-   * Handle keyboard shortcuts
-   * @param {KeyboardEvent} e - Keyboard event
+   * Retry last failed message
    */
-  function handleKeyDown(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (!pending && input.trim()) {
-        handleSend(e);
-      }
+  const handleRetry = useCallback(() => {
+    if (retryableMessage) {
+      setInput(retryableMessage);
+      setError(null);
+      setRetryableMessage(null);
     }
-  }
+  }, [retryableMessage]);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Dismiss error message
+   */
+  const handleDismissError = useCallback(() => {
+    setError(null);
+    setRetryableMessage(null);
+  }, []);
 
   // PUBLIC_INTERFACE
   /**
    * Clear conversation history
    */
-  function handleClear() {
+  const handleClearConversation = useCallback(() => {
     setMessages([]);
-    localStorage.removeItem("conversation");
+    localStorage.removeItem("conversation_history");
     setError(null);
-    inputRef.current?.focus();
-  }
-
-  /**
-   * Render individual chat message
-   * @param {Object} message - Message object
-   * @param {number} index - Message index
-   * @returns {JSX.Element} Rendered message component
-   */
-  function renderMessage(message, index) {
-    const isUser = message.role === "user";
-    const isAssistant = message.role === "assistant";
-
-    if (isUser) {
-      return (
-        <div key={index} className="chat-message chat-user">
-          <div className="chat-avatar" aria-label="You">
-            👤
-          </div>
-          <div className="chat-bubble">
-            <div className="msg-ai">{message.query}</div>
-            <div className="chat-meta">
-              {new Date(message.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (isAssistant) {
-      return (
-        <div key={index} className="chat-message chat-assistant">
-          <div className="chat-avatar" aria-label="AI Assistant">
-            🤖
-          </div>
-          <div className="chat-bubble chat-bubble-assistant">
-            <div>
-              <strong>Gemini Response:</strong>
-              <div className="msg-ai">
-                {message.gemini_answer}
-              </div>
-            </div>
-            
-            <hr className="chat-divider" />
-            
-            <div>
-              <strong>Knowledge Base (RAG):</strong>
-              <div className="msg-ai-secondary">
-                {message.rag_answer}
-              </div>
-            </div>
-            
-            <div className="chat-meta">
-              {new Date(message.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
-  }
-
-  /**
-   * Render loading indicator
-   * @returns {JSX.Element} Loading component
-   */
-  function renderLoadingMessage() {
-    return (
-      <div className="chat-message chat-assistant">
-        <div className="chat-avatar" aria-label="AI Assistant">
-          🤖
-        </div>
-        <div className="chat-bubble chat-bubble-assistant">
-          <div className="msg-ai">
-            <div className="loading-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            {" "}Thinking...
-          </div>
-        </div>
-      </div>
-    );
-  }
+    setRetryableMessage(null);
+    // Generate new session ID
+    sessionId.current = generateSessionId();
+  }, []);
 
   // Main Render
   return (
     <div className="App">
-      {/* Header Section */}
-      <header className="chat-header">
-        <div className="brand">
-          <span role="img" aria-label="chat">💬</span>
-          IntelliQuery Chatbot
-        </div>
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-          type="button"
-        >
-          <span role="img" aria-label={theme === "dark" ? "sun" : "moon"}>
-            {theme === "dark" ? "☀️" : "🌙"}
-          </span>
-          {theme === "dark" ? "Light" : "Dark"}
-        </button>
-      </header>
+      <Header 
+        theme={theme} 
+        onThemeToggle={handleThemeToggle}
+      />
 
-      {/* Main Content Area */}
       <main className="chat-main">
         <section className="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
-          {messages.length === 0 && !pending ? (
-            <div className="chat-empty">
-              <div>
-                <h2 style={{ marginBottom: "16px", color: "var(--text-secondary)" }}>
-                  Welcome to IntelliQuery! 👋
-                </h2>
-                <p>
-                  Ask me anything about our knowledge base. I combine responses from 
-                  our internal documents with Google Gemini AI to give you comprehensive answers.
+          {messages.length === 0 && !isLoading ? (
+            <div className="chat-welcome">
+              <div className="welcome-content">
+                <div className="welcome-icon">🧠</div>
+                <h2 className="welcome-title">Welcome to IntelliQuery!</h2>
+                <p className="welcome-description">
+                  I'm your AI assistant powered by advanced knowledge retrieval and Google Gemini AI. 
+                  Ask me anything about our knowledge base, and I'll provide comprehensive answers 
+                  combining internal documents with AI-generated insights.
                 </p>
+                <div className="welcome-features">
+                  <div className="feature-item">
+                    <span className="feature-icon">📚</span>
+                    <span>Knowledge Base Search</span>
+                  </div>
+                  <div className="feature-item">
+                    <span className="feature-icon">✨</span>
+                    <span>Gemini AI Enhancement</span>
+                  </div>
+                  <div className="feature-item">
+                    <span className="feature-icon">💬</span>
+                    <span>Context-Aware Conversations</span>
+                  </div>
+                </div>
+                {messages.length > 0 && (
+                  <button 
+                    className="clear-button"
+                    onClick={handleClearConversation}
+                    type="button"
+                  >
+                    Clear Conversation
+                  </button>
+                )}
               </div>
             </div>
           ) : (
             <>
-              {messages.map((message, index) => renderMessage(message, index))}
-              {pending && renderLoadingMessage()}
+              {messages.map((message, index) => (
+                <ChatMessage 
+                  key={`${message.timestamp}-${index}`}
+                  message={message} 
+                  index={index} 
+                />
+              ))}
+              {isLoading && <LoadingMessage />}
             </>
           )}
           
           {error && (
-            <div className="chat-error" role="alert">
-              <strong>Error:</strong> {error}
-            </div>
+            <ErrorMessage 
+              message={error}
+              onRetry={retryableMessage ? handleRetry : null}
+              onDismiss={handleDismissError}
+            />
           )}
           
           <div ref={chatEndRef} />
         </section>
       </main>
 
-      {/* Input Section */}
-      <form className="chat-form" onSubmit={handleSend} noValidate>
-        <textarea
-          ref={inputRef}
-          className="chat-input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={pending ? "Processing your message..." : "Ask me anything..."}
-          rows={1}
-          maxLength={2000}
-          disabled={pending}
-          aria-label="Type your message"
-          required
-        />
-        <button
-          className="btn-send"
-          type="submit"
-          disabled={pending || !input.trim()}
-          aria-label={pending ? "Sending message" : "Send message"}
-        >
-          {pending ? (
-            <div className="loading-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          ) : (
-            "→"
-          )}
-        </button>
-      </form>
+      <ChatInput
+        value={input}
+        onChange={handleInputChange}
+        onSubmit={handleSendMessage}
+        disabled={isLoading}
+        placeholder={isLoading ? "Processing your message..." : "Ask me anything..."}
+      />
     </div>
   );
 }

@@ -1,61 +1,240 @@
+/* Global Styles and Reset */
+
+/* Import Google Fonts for better typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* CSS Reset and Normalize */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg-primary, #2c3e50);
   color: var(--text-primary, #ffffff);
   min-height: 100vh;
   overflow-x: hidden;
+  font-feature-settings: 'kern' 1;
+  text-rendering: optimizeLegibility;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
-
-/* Reset and normalize */
+/* Root container */
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  isolation: isolate;
 }
 
-/* Prevent horizontal scroll */
-html {
-  overflow-x: hidden;
+/* Improved focus management */
+:focus {
+  outline: none;
 }
 
-/* Improve text rendering */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:focus-visible {
+  outline: 2px solid var(--button-primary, #3498db);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Remove default button styles */
+/* Button improvements */
 button {
   border: none;
   background: none;
   cursor: pointer;
   font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+  margin: 0;
 }
 
-/* Remove default textarea styles */
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Form elements improvements */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
 textarea {
-  font-family: inherit;
-  resize: none;
+  resize: vertical;
+  field-sizing: content;
 }
 
-/* Remove default input styles */
-input {
-  font-family: inherit;
+/* Link improvements */
+a {
+  color: var(--button-primary, #3498db);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-/* Focus outline improvements */
-*:focus {
-  outline: none;
+a:hover {
+  color: var(--button-hover, #2980b9);
+  text-decoration: underline;
 }
 
-*:focus-visible {
-  outline: 2px solid var(--button-primary, #3498db);
-  outline-offset: 2px;
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Code elements */
+code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.875em;
+  background: var(--bg-secondary, #34495e);
+  padding: 0.125em 0.25em;
+  border-radius: 0.25em;
+}
+
+/* Selection styling */
+::selection {
+  background: var(--button-primary, #3498db);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background: var(--button-primary, #3498db);
+  color: #ffffff;
+}
+
+/* Scrollbar improvements for WebKit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary, #2c3e50);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--input-border, #4a5f7a);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted, #7f8c8d);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-primary, #2c3e50);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--input-border, #4a5f7a) var(--bg-primary, #2c3e50);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :focus-visible {
+    outline-width: 3px;
+    outline-style: solid;
+  }
+}
+
+/* Dark mode improvements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
+/* Loading states */
+.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Skip link for screen readers */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--button-primary, #3498db);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Visually hidden utility class */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
