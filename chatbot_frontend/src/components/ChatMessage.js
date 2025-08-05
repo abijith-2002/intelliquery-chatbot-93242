@@ -25,12 +25,6 @@ function ChatMessage({ message, index }) {
           <div className="message-content">
             {message.query}
           </div>
-          <div className="message-meta">
-            {new Date(message.timestamp).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </div>
         </div>
       </div>
     );
@@ -40,33 +34,8 @@ function ChatMessage({ message, index }) {
     return (
       <div className="chat-message chat-assistant-direct" data-message-id={index}>
         <div className="assistant-content-direct">
-          <div className="response-section gemini-section">
-            <div className="response-header">
-              <span className="response-icon">✨</span>
-              <strong className="response-title">Gemini AI</strong>
-            </div>
-            <div className="response-content">
-              {message.gemini_answer}
-            </div>
-          </div>
-          
-          <div className="response-divider"></div>
-          
-          <div className="response-section rag-section">
-            <div className="response-header">
-              <span className="response-icon">📚</span>
-              <strong className="response-title">Knowledge Base</strong>
-            </div>
-            <div className="response-content rag-content">
-              {message.rag_answer}
-            </div>
-          </div>
-          
-          <div className="message-meta">
-            {new Date(message.timestamp).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
+          <div className="response-content">
+            {message.gemini_answer}
           </div>
         </div>
       </div>
