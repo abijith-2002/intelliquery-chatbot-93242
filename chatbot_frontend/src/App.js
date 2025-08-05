@@ -2,19 +2,23 @@ import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 /**
- * Modern, minimalistic, dark-themed chatbot frontend.
- * Features:
- *  - Real-time chat with FastAPI backend (`/chat`)
- *  - Displays RAG and Gemini answers, chat history, user/assistant styling
- *  - Minimal, accessible, fully responsive for desktop/mobile
- *  - Session persisted in localStorage for long-term context
+ * IntelliQuery Chatbot Frontend
+ * 
+ * A modern, minimalistic, dark-themed chatbot interface built with React.
+ * Features real-time communication with FastAPI backend, displays both RAG 
+ * and Gemini responses, and maintains conversation history with session persistence.
+ * 
+ * Design follows clean, card-based layout with responsive design for desktop and mobile.
  */
 
-// Helpers
+// Configuration
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/chat";
 
+/**
+ * Generate or retrieve persistent session ID from localStorage
+ * @returns {string} Unique session identifier
+ */
 function generateSessionId() {
-  // Unique, persistent session identifier in localStorage
   let id = localStorage.getItem("chat_session_id");
   if (!id) {
     id = "session-" + Math.random().toString(36).substr(2, 10);
@@ -25,184 +29,324 @@ function generateSessionId() {
 
 // PUBLIC_INTERFACE
 function App() {
-  // --- State ---
-  const [theme, setTheme] = useState("dark");
+  // State Management
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "dark";
+  });
+  
   const [input, setInput] = useState("");
+  
   const [messages, setMessages] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("conversation")) || [];
-    } catch {
+      const stored = localStorage.getItem("conversation");
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn("Failed to load conversation history:", error);
       return [];
     }
   });
+  
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Refs
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
 
-  // --- Effects: Theme & Chat Scroll ---
+  // Effects
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme || "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Auto-scroll to bottom when new messages arrive
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+    
+    // Persist conversation to localStorage
     localStorage.setItem("conversation", JSON.stringify(messages));
   }, [messages]);
 
-  // --- Theme Toggle ---
   // PUBLIC_INTERFACE
+  /**
+   * Toggle between light and dark themes
+   */
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
   };
 
-  // --- Handle Send ---
   // PUBLIC_INTERFACE
+  /**
+   * Handle message submission
+   * @param {Event} e - Form submission event
+   */
   async function handleSend(e) {
     e.preventDefault();
-    if (!input.trim() || pending) return;
+    
+    const trimmedInput = input.trim();
+    if (!trimmedInput || pending) return;
+
     setPending(true);
     setError(null);
 
     // Add user message optimistically
-    const newUserMsg = {
+    const userMessage = {
       role: "user",
-      query: input.trim(),
+      query: trimmedInput,
       timestamp: Date.now(),
     };
-    setMessages((msgs) => [...msgs, newUserMsg]);
+    
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     setInput("");
 
     try {
-      const resp = await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({
           session_id: generateSessionId(),
-          query: input.trim(),
+          query: trimmedInput,
         }),
       });
-      if (!resp.ok) throw new Error("Network/Backend error. Please try again.");
-      const data = await resp.json();
 
-      // Compose assistant message
-      const aiMsg = {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Add assistant response
+      const assistantMessage = {
         role: "assistant",
-        rag_answer: data.rag_answer,
-        gemini_answer: data.gemini_answer,
+        rag_answer: data.rag_answer || "No RAG response available",
+        gemini_answer: data.gemini_answer || "No Gemini response available",
         timestamp: Date.now(),
       };
-      setMessages((msgs) => [...msgs, aiMsg]);
+      
+      setMessages(prevMessages => [...prevMessages, assistantMessage]);
+      
     } catch (err) {
-      setError(err.message || "Failed to get response.");
-      // Remove pending user message if error for better UX
-      setMessages((msgs) =>
-        msgs.slice(0, msgs.length - 1)
-      );
+      console.error("Chat error:", err);
+      setError(err.message || "Failed to get response. Please try again.");
+      
+      // Remove the optimistically added user message on error
+      setMessages(prevMessages => prevMessages.slice(0, -1));
+      setInput(trimmedInput); // Restore input
+      
     } finally {
       setPending(false);
-    }
-  }
-
-  // --- Render Chat Messages ---
-  function renderMessage(msg, idx) {
-    if (msg.role === "user") {
-      return (
-        <div key={idx} className="chat-message chat-user">
-          <div className="chat-avatar" aria-label="You">🧑</div>
-          <div className="chat-bubble">
-            <span>{msg.query}</span>
-            <span className="chat-meta">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-        </div>
-      );
-    }
-    if (msg.role === "assistant") {
-      return (
-        <div key={idx} className="chat-message chat-assistant">
-          <div className="chat-avatar" aria-label="AI">🤖</div>
-          <div className="chat-bubble chat-bubble-assistant">
-            <strong>Gemini:</strong>
-            <div className="msg-ai">
-              <span>{msg.gemini_answer}</span>
-            </div>
-            <hr className="chat-divider" />
-            <strong>RAG:</strong>
-            <div className="msg-ai msg-ai-secondary">
-              <span>{msg.rag_answer}</span>
-            </div>
-            <span className="chat-meta">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
-  // PUBLIC_INTERFACE
-  function handleInputKey(e) {
-    if (e.key === "Enter" && !e.shiftKey && input.trim() && !pending) {
-      handleSend(e);
+      
+      // Focus back to input after response
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   }
 
   // PUBLIC_INTERFACE
+  /**
+   * Handle keyboard shortcuts
+   * @param {KeyboardEvent} e - Keyboard event
+   */
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (!pending && input.trim()) {
+        handleSend(e);
+      }
+    }
+  }
+
+  // PUBLIC_INTERFACE
+  /**
+   * Clear conversation history
+   */
   function handleClear() {
     setMessages([]);
     localStorage.removeItem("conversation");
+    setError(null);
+    inputRef.current?.focus();
   }
 
-  // --- Layout ---
+  /**
+   * Render individual chat message
+   * @param {Object} message - Message object
+   * @param {number} index - Message index
+   * @returns {JSX.Element} Rendered message component
+   */
+  function renderMessage(message, index) {
+    const isUser = message.role === "user";
+    const isAssistant = message.role === "assistant";
+
+    if (isUser) {
+      return (
+        <div key={index} className="chat-message chat-user">
+          <div className="chat-avatar" aria-label="You">
+            👤
+          </div>
+          <div className="chat-bubble">
+            <div className="msg-ai">{message.query}</div>
+            <div className="chat-meta">
+              {new Date(message.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (isAssistant) {
+      return (
+        <div key={index} className="chat-message chat-assistant">
+          <div className="chat-avatar" aria-label="AI Assistant">
+            🤖
+          </div>
+          <div className="chat-bubble chat-bubble-assistant">
+            <div>
+              <strong>Gemini Response:</strong>
+              <div className="msg-ai">
+                {message.gemini_answer}
+              </div>
+            </div>
+            
+            <hr className="chat-divider" />
+            
+            <div>
+              <strong>Knowledge Base (RAG):</strong>
+              <div className="msg-ai-secondary">
+                {message.rag_answer}
+              </div>
+            </div>
+            
+            <div className="chat-meta">
+              {new Date(message.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
+  /**
+   * Render loading indicator
+   * @returns {JSX.Element} Loading component
+   */
+  function renderLoadingMessage() {
+    return (
+      <div className="chat-message chat-assistant">
+        <div className="chat-avatar" aria-label="AI Assistant">
+          🤖
+        </div>
+        <div className="chat-bubble chat-bubble-assistant">
+          <div className="msg-ai">
+            <div className="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            {" "}Thinking...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Render
   return (
     <div className="App">
-      {/* Header/Nav */}
+      {/* Header Section */}
       <header className="chat-header">
         <div className="brand">
-          <span role="img" aria-label="query">💬</span> IntelliQuery Chatbot
+          <span role="img" aria-label="chat">💬</span>
+          IntelliQuery Chatbot
         </div>
-        <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+        <button 
+          className="theme-toggle" 
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+          type="button"
+        >
+          <span role="img" aria-label={theme === "dark" ? "sun" : "moon"}>
+            {theme === "dark" ? "☀️" : "🌙"}
+          </span>
+          {theme === "dark" ? "Light" : "Dark"}
         </button>
       </header>
 
-      {/* Main Layout */}
+      {/* Main Content Area */}
       <main className="chat-main">
-        {/* Sidebar (optional - future for chat sessions/history) */}
-        {/* <aside className="chat-sidebar"></aside> */}
-
-        {/* Chat Area */}
-        <section className="chat-area" aria-live="polite">
-          {messages.length === 0 ? (
+        <section className="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
+          {messages.length === 0 && !pending ? (
             <div className="chat-empty">
-              <p>Welcome! Ask me anything about our knowledge base or Gemini AI 🔍</p>
+              <div>
+                <h2 style={{ marginBottom: "16px", color: "var(--text-secondary)" }}>
+                  Welcome to IntelliQuery! 👋
+                </h2>
+                <p>
+                  Ask me anything about our knowledge base. I combine responses from 
+                  our internal documents with Google Gemini AI to give you comprehensive answers.
+                </p>
+              </div>
             </div>
           ) : (
-            messages.map((msg, idx) => renderMessage(msg, idx))
+            <>
+              {messages.map((message, index) => renderMessage(message, index))}
+              {pending && renderLoadingMessage()}
+            </>
           )}
+          
+          {error && (
+            <div className="chat-error" role="alert">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+          
           <div ref={chatEndRef} />
         </section>
       </main>
 
-      {/* Chat input fixed at bottom */}
-      <form className="chat-form" onSubmit={handleSend} autoComplete="off">
+      {/* Input Section */}
+      <form className="chat-form" onSubmit={handleSend} noValidate>
         <textarea
+          ref={inputRef}
           className="chat-input"
           value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleInputKey}
-          placeholder={pending ? "Awaiting response..." : "Type your message..."}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={pending ? "Processing your message..." : "Ask me anything..."}
           rows={1}
           maxLength={2000}
           disabled={pending}
-          aria-label="Message"
+          aria-label="Type your message"
           required
         />
         <button
           className="btn-send"
           type="submit"
           disabled={pending || !input.trim()}
-          aria-label="Send"
+          aria-label={pending ? "Sending message" : "Send message"}
         >
-          {pending ? "..." : "➤"}
+          {pending ? (
+            <div className="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          ) : (
+            "→"
+          )}
         </button>
       </form>
     </div>
