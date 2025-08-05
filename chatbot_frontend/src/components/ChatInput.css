@@ -64,12 +64,25 @@
   border-color: var(--text-muted); /* Hover state from design */
 }
 
-.chat-textarea:focus {
+/* 
+  Remove double border on focus by using only border-color and box-shadow for "focus" state.
+  Remove outline from :focus and :focus-visible. Only one focus indicator is used: 
+  border-color for direct focus and a soft box-shadow for extra accessibility pop.
+
+  We remove outline from :focus and :focus-visible (outline: none;), and style via border and box-shadow only.
+*/
+
+.chat-textarea:focus,
+.chat-textarea:focus-visible {
+  outline: none;
   border-color: var(--accent-blue); /* Focus state from design */
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); /* Exact shadow from design */
-  text-align: left; /* Left-align text when typing */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10); /* Single shadow for accessibility */
+  text-align: left;
 }
 
+/* Remove the separate :focus-visible style with outline, rely on border-color + box-shadow instead */
+
+/* Keep left alignment after text input */
 .chat-textarea:not(:placeholder-shown) {
   text-align: left; /* Left-align when there's content */
 }
@@ -92,12 +105,6 @@
     padding: 10px var(--space-4); /* Adjusted vertical padding for mobile centering */
     background: #232935; /* Re-apply full opacity on mobile, no alpha */
   }
-}
-
-/* Focus states for accessibility */
-.chat-textarea:focus-visible {
-  outline: 2px solid var(--accent-blue);
-  outline-offset: 2px;
 }
 
 /* High contrast mode support */
