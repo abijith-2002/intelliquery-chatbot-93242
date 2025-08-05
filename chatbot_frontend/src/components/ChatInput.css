@@ -20,6 +20,31 @@
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
   text-align: left; /* Left-align all text including placeholder */
   z-index: 100; /* Ensure it stays on top */
+  
+  /* Remove all scrollbars */
+  overflow: hidden; /* Hide any overflow content */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  
+  /* Prevent text wrapping and ensure single line behavior */
+  white-space: nowrap; /* Prevent text wrapping */
+  word-wrap: normal; /* Disable word wrapping */
+  overflow-wrap: normal; /* Disable overflow wrapping */
+}
+
+/* Hide scrollbars in WebKit browsers */
+.chat-textarea::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.chat-textarea::-webkit-scrollbar-track {
+  display: none;
+}
+
+.chat-textarea::-webkit-scrollbar-thumb {
+  display: none;
 }
 
 .chat-textarea::placeholder {
