@@ -52,6 +52,9 @@ body,
   z-index: 10;
   border: none;
   box-shadow: none;
+  /* Add extra safe space for mobile */
+  min-width: 0;
+  min-height: 50px;
 }
 .brand {
   display: flex;
@@ -129,12 +132,12 @@ body,
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 1.1rem 0 110px 0;
+  padding: 2.2rem 0 120px 0;
   box-sizing: border-box;
   width: 100vw;
   max-width: 700px;
   margin: 0 auto;
-  min-height: 53vh;
+  min-height: 60vh;
   background: none;
 }
 
@@ -200,7 +203,7 @@ body,
   border-radius: var(--bubble-radius);
   margin-left: 0px;
   margin-right: auto;
-  max-width: 78%;
+  max-width: 80%;
   min-width: 44px;
   padding-left: 22px;
   font-size: 1rem;
@@ -255,13 +258,13 @@ body,
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 28px;
+  bottom: 36px;
   z-index: 101;
   width: 100vw;
   max-width: 650px;
   margin: 0 auto;
   justify-content: center;
-  padding: 0;
+  padding: 0 0 0 0;
   background: transparent;
   pointer-events: all;
 }

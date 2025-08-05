@@ -120,7 +120,7 @@ function App() {
       return (
         <div key={idx} className="chat-message chat-assistant">
           <div className="chat-avatar" aria-label="AI">🤖</div>
-          <div className="chat-bubble chat-bubble-assistant">
+          <div className="chat-bubble">
             <strong>Gemini:</strong>
             <div className="msg-ai">
               <span>{msg.gemini_answer}</span>
@@ -161,7 +161,21 @@ function App() {
           <span>Knowledge Bot</span>
         </div>
         {/* Example user quick-action (from screenshot 2) */}
-        <button className="header-user-btn" type="button" style={{display:"none"}} tabIndex={-1}>
+        <button
+          className="header-user-btn"
+          type="button"
+          tabIndex={0}
+          title="Try sample test query"
+          onClick={() => {
+            // Send a demo message if not pending
+            if (!pending) {
+              setInput("How do I test the chatbot?");
+              setTimeout(() => {
+                document.querySelector('.chat-input')?.focus();
+              }, 50);
+            }
+          }}
+        >
           how to test
         </button>
       </header>
@@ -181,6 +195,12 @@ function App() {
         </section>
       </main>
 
+      {/* Error bar above input */}
+      {error && (
+        <div className="chat-error" role="alert">
+          {error}
+        </div>
+      )}
       {/* Chat input bar */}
       <form className="chat-form" onSubmit={handleSend} autoComplete="off">
         <div className="input-bar-pill" tabIndex={-1}>
