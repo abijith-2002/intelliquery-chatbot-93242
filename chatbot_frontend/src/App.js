@@ -15,7 +15,7 @@ import "./App.css";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL ||
   process.env.REACT_APP_BACKEND_URL ||
-  "http://localhost:8000";
+  "https://vscode-internal-11266-beta.beta01.cloud.kavia.ai:3001";
 const API_URL = `${API_BASE_URL}/chat`;
 
 function generateSessionId() {
