@@ -18,9 +18,6 @@ function ChatMessage({ message, index }) {
   if (isUser) {
     return (
       <div className="chat-message chat-user" data-message-id={index}>
-        <div className="chat-avatar" aria-label="You">
-          <span className="avatar-icon">👤</span>
-        </div>
         <div className="chat-bubble user-bubble">
           <div className="message-content">
             {message.query}

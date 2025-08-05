@@ -1,4 +1,4 @@
-/* Chat Message Component - Design System Implementation */
+ /* Chat Message Component - Design System Implementation */
 .chat-message {
   display: flex;
   gap: var(--space-3);
@@ -18,38 +18,14 @@
   align-items: stretch;
 }
 
-.chat-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  font-size: 14px;
-}
-
-.chat-user .chat-avatar {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: var(--text-primary);
-}
-
-.chat-assistant .chat-avatar {
-  background: var(--bg-secondary);
-  color: var(--accent-blue);
-}
-
-.avatar-icon {
-  font-size: 14px;
-  line-height: 1;
-}
+/* ====================== */
+/* AVATARS - REMOVED for user messages */
+/* (Old .chat-avatar and .avatar-icon styles omitted for user) */
+/* ====================== */
 
 .chat-bubble {
   background: var(--bg-secondary);
-  border-radius: 12px;
+  border-radius: 20px; /* Increased for a more rounded look */
   padding: var(--space-3) var(--space-4);
   max-width: 70%;
   word-wrap: break-word;
@@ -58,9 +34,10 @@
 }
 
 .user-bubble {
-  background: var(--accent-blue);
+  background: #576e94 !important;
   color: var(--text-primary);
-  border-color: var(--accent-blue);
+  border-color: #576e94 !important;
+  border-radius: 20px;
 }
 
 .assistant-bubble {
@@ -222,18 +199,9 @@
   .chat-bubble {
     max-width: 85%;
     padding: var(--space-2) var(--space-3);
-    border-radius: 10px;
+    border-radius: 16px; /* More rounded for mobile as well */
   }
-  
-  .chat-avatar {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .avatar-icon {
-    font-size: 12px;
-  }
-  
+
   .message-content,
   .response-content {
     font-size: 13px;
@@ -257,19 +225,11 @@
     gap: var(--space-2);
     margin-bottom: var(--space-3);
   }
-  
+
   .chat-bubble {
     max-width: 90%;
     padding: var(--space-2);
-  }
-  
-  .chat-avatar {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .avatar-icon {
-    font-size: 10px;
+    border-radius: 14px; /* Further rounded for small devices */
   }
   
   .response-section {
