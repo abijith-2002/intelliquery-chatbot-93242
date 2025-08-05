@@ -1,31 +1,33 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-/**
- * Modern, minimalistic, dark-themed chatbot frontend.
- * Features:
- *  - Real-time chat with FastAPI backend (`/chat`)
- *  - Displays RAG and Gemini answers, chat history, user/assistant styling
- *  - Minimal, accessible, fully responsive for desktop/mobile
- *  - Session persisted in localStorage for long-term context
- */
+/*
+  Modern chatbot frontend matching provided design notes & screenshot.
+  Visual hierarchy: <Header />, <ChatArea />, <MessageList />, <ChatInput />
+  - Error messages are shown as "assistant" (bot) message bubbles.
+  - All main colors, paddings, font sizes, and spacing match extracted palette and description.
+  - Input bar is responsive, anchored at bottom, with capsule look and green send button.
+*/
 
-/**
- * API URL for backend requests.
- * Uses REACT_APP_API_BASE_URL from the environment (.env or deployment).
- * Defaults to "http://localhost:8000" if not set.
- * Ensure REACT_APP_API_BASE_URL is configured, e.g.:
- *   REACT_APP_API_BASE_URL=https://vscode-internal-11266-beta.beta01.cloud.kavia.ai:3001
- * All API requests point to `${API_BASE_URL}/chat`
- */
+// Theme colors from assets/chat_ui_design_notes.md
+const DESIGN_COLORS = {
+  bgCanvas: "#2D3840",
+  primaryText: "#FFFFFF",
+  secondaryText: "#C8CED3",
+  accentBlue: "#3C98F5",
+  sendBtnBg: "#19C37D",
+  sendBtnIcon: "#FFFFFF",
+  inputBg: "#232C34",
+  inputPlaceholder: "#7B8996",
+};
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL ||
-  process.env.REACT_APP_BACKEND_URL || // fallback for legacy config
+  process.env.REACT_APP_BACKEND_URL ||
   "http://localhost:8000";
 const API_URL = `${API_BASE_URL}/chat`;
 
 function generateSessionId() {
-  // Unique, persistent session identifier in localStorage
   let id = localStorage.getItem("chat_session_id");
   if (!id) {
     id = "session-" + Math.random().toString(36).substr(2, 10);
@@ -36,8 +38,7 @@ function generateSessionId() {
 
 // PUBLIC_INTERFACE
 function App() {
-  // --- State ---
-  const [theme, setTheme] = useState("dark");
+  // --- State
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState(() => {
     try {
@@ -47,34 +48,30 @@ function App() {
     }
   });
   const [pending, setPending] = useState(false);
+  // error message disappears when user tries again OR when input changes
   const [error, setError] = useState(null);
   const chatEndRef = useRef(null);
 
-  // --- Effects: Theme & Chat Scroll ---
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme || "dark");
-  }, [theme]);
-
+  // --- Effects: Scroll & persist
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     localStorage.setItem("conversation", JSON.stringify(messages));
   }, [messages]);
 
-  // --- Theme Toggle ---
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
+  // Re-render for input changes to clear error
+  useEffect(() => {
+    if (error) setError(null);
+    // eslint-disable-next-line
+  }, [input]);
 
-  // --- Handle Send ---
+  // --- Chat Send Handler
   // PUBLIC_INTERFACE
   async function handleSend(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!input.trim() || pending) return;
     setPending(true);
-    setError(null);
 
-    // Add user message optimistically
+    // Add user message
     const newUserMsg = {
       role: "user",
       query: input.trim(),
@@ -89,13 +86,12 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: generateSessionId(),
-          query: input.trim(),
+          query: newUserMsg.query,
         }),
       });
       if (!resp.ok) throw new Error("Network/Backend error. Please try again.");
       const data = await resp.json();
-
-      // Compose assistant message
+      // Compose bot message
       const aiMsg = {
         role: "assistant",
         rag_answer: data.rag_answer,
@@ -104,51 +100,23 @@ function App() {
       };
       setMessages((msgs) => [...msgs, aiMsg]);
     } catch (err) {
-      setError(err.message || "Failed to get response.");
-      // Remove pending user message if error for better UX
+      // Insert error message as a "bot" response bubble
+      const errorBotMsg = {
+        role: "error",
+        error: err.message || "Failed to get response.",
+        timestamp: Date.now(),
+      };
       setMessages((msgs) =>
-        msgs.slice(0, msgs.length - 1)
+        // Remove pending user msg and insert the error
+        msgs.slice(0, msgs.length - 1).concat(errorBotMsg)
       );
+      setError(errorBotMsg.error);
     } finally {
       setPending(false);
     }
   }
 
-  // --- Render Chat Messages ---
-  function renderMessage(msg, idx) {
-    if (msg.role === "user") {
-      return (
-        <div key={idx} className="chat-message chat-user">
-          <div className="chat-avatar" aria-label="You">🧑</div>
-          <div className="chat-bubble">
-            <span>{msg.query}</span>
-            <span className="chat-meta">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-        </div>
-      );
-    }
-    if (msg.role === "assistant") {
-      return (
-        <div key={idx} className="chat-message chat-assistant">
-          <div className="chat-avatar" aria-label="AI">🤖</div>
-          <div className="chat-bubble chat-bubble-assistant">
-            <strong>Gemini:</strong>
-            <div className="msg-ai">
-              <span>{msg.gemini_answer}</span>
-            </div>
-            <hr className="chat-divider" />
-            <strong>RAG:</strong>
-            <div className="msg-ai msg-ai-secondary">
-              <span>{msg.rag_answer}</span>
-            </div>
-            <span className="chat-meta">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
+  // Handle Enter to send (without shift)
   // PUBLIC_INTERFACE
   function handleInputKey(e) {
     if (e.key === "Enter" && !e.shiftKey && input.trim() && !pending) {
@@ -160,62 +128,157 @@ function App() {
   function handleClear() {
     setMessages([]);
     localStorage.removeItem("conversation");
+    setError(null);
   }
 
-  // --- Layout ---
-  return (
-    <div className="App">
-      {/* Header/Nav */}
-      <header className="chat-header">
-        <div className="brand">
-          <span role="img" aria-label="query">💬</span> IntelliQuery Chatbot
+  // --- HEADER ---
+  function Header() {
+    return (
+      <div className="cq-header">
+        <div className="cq-header-avatar">
+          <span style={{ color: "#fff", fontWeight: 700, fontSize: 17 }}>K</span>
         </div>
-        <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-        </button>
-      </header>
+        <div className="cq-header-title">Knowledge Bot</div>
+      </div>
+    );
+  }
 
-      {/* Main Layout */}
-      <main className="chat-main">
-        {/* Sidebar (optional - future for chat sessions/history) */}
-        {/* <aside className="chat-sidebar"></aside> */}
-
-        {/* Chat Area */}
-        <section className="chat-area" aria-live="polite">
-          {messages.length === 0 ? (
-            <div className="chat-empty">
-              <p>Welcome! Ask me anything about our knowledge base or Gemini AI 🔍</p>
+  // --- MESSAGE LIST ---
+  function MessageList({ messages }) {
+    if (!messages.length)
+      return (
+        <div className="cq-empty">
+          <p>Welcome! Ask me anything…</p>
+        </div>
+      );
+    // Message rendering function
+    return (
+      <>
+        {messages.map((msg, idx) =>
+          msg.role === "user" ? (
+            <div className="cq-msg-row cq-msg-user" key={idx}>
+              <div className="cq-avatar cq-avatar-user" aria-label="You">
+                <span role="img" aria-label="You">🧑</span>
+              </div>
+              <div className="cq-msg-bubble cq-bubble-user">
+                <span>{msg.query}</span>
+                <span className="cq-meta">
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
             </div>
-          ) : (
-            messages.map((msg, idx) => renderMessage(msg, idx))
-          )}
-          <div ref={chatEndRef} />
-        </section>
-      </main>
+          ) : msg.role === "assistant" ? (
+            <div className="cq-msg-row cq-msg-bot" key={idx}>
+              <div className="cq-avatar" aria-label="Bot">
+                <span role="img" aria-label="AI">🤖</span>
+              </div>
+              <div className="cq-msg-bubble cq-bubble-bot">
+                <div className="cq-msg-section">
+                  <strong>Gemini:</strong>
+                  <span className="cq-msg-ai">{msg.gemini_answer}</span>
+                </div>
+                <div className="cq-msg-section cq-msg-secondary">
+                  <strong>RAG:</strong>
+                  <span className="cq-msg-ai">{msg.rag_answer}</span>
+                </div>
+                <span className="cq-meta">
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+          ) : msg.role === "error" ? (
+            // Render error "as bot bubble" with suitable icon and styling
+            <div className="cq-msg-row cq-msg-bot" key={idx}>
+              <div className="cq-avatar" aria-label="Bot">
+                <span role="img" aria-label="Warning">⚠️</span>
+              </div>
+              <div className="cq-msg-bubble cq-bubble-bot cq-bubble-error">
+                <div className="cq-msg-error-content">
+                  <span className="cq-error-icon" role="img" aria-label="Error">❗</span>
+                  <span>{msg.error}</span>
+                </div>
+                <span className="cq-meta">
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+          ) : null
+        )}
+        <div ref={chatEndRef} />
+      </>
+    );
+  }
 
-      {/* Chat input fixed at bottom */}
-      <form className="chat-form" onSubmit={handleSend} autoComplete="off">
+  // --- CHAT INPUT COMPONENT ---
+  function ChatInput({ value, onChange, onKeyDown, onSend, disabled }) {
+    return (
+      <form className="cq-chat-form" onSubmit={onSend} autoComplete="off">
         <textarea
-          className="chat-input"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleInputKey}
-          placeholder={pending ? "Awaiting response..." : "Type your message..."}
+          className="cq-input"
+          value={value}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          disabled={disabled}
+          placeholder={disabled ? "Awaiting response..." : "Type your message..."}
           rows={1}
           maxLength={2000}
-          disabled={pending}
           aria-label="Message"
+          spellCheck={true}
+          style={{ resize: "none" }}
           required
         />
         <button
-          className="btn-send"
+          className="cq-btn-send"
           type="submit"
-          disabled={pending || !input.trim()}
+          disabled={disabled || !value.trim()}
           aria-label="Send"
         >
-          {pending ? "..." : "➤"}
+          <svg viewBox="0 0 24 24" width="21" height="21" style={{ verticalAlign: "middle"}}>
+            <circle cx="12" cy="12" r="12" fill="none"/>
+            <path
+              d="M3 20l18-8-18-8v7l12 1-12 1z"
+              fill={DESIGN_COLORS.sendBtnIcon}
+            />
+          </svg>
+        </button>
+        <button
+          className="cq-btn-clear"
+          type="button"
+          aria-label="Clear chat"
+          onClick={handleClear}
+          disabled={messages.length === 0}
+        >
+          🗑️
         </button>
       </form>
+    );
+  }
+
+  // --- MAIN LAYOUT ---
+  return (
+    <div className="App cq-app-root">
+      <Header />
+      <main className="cq-main">
+        <section className="cq-chat-container" aria-live="polite">
+          <MessageList messages={messages} />
+        </section>
+      </main>
+      <ChatInput
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={handleInputKey}
+        onSend={handleSend}
+        disabled={pending}
+      />
     </div>
   );
 }
