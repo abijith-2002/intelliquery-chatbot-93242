@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import './ChatMessage.css';
 
 // PUBLIC_INTERFACE
@@ -32,7 +33,14 @@ function ChatMessage({ message, index }) {
       <div className="chat-message chat-assistant-direct" data-message-id={index}>
         <div className="assistant-content-direct">
           <div className="response-content">
-            {message.gemini_answer}
+            <ReactMarkdown
+              components={{
+                a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer"/>,
+              }}
+              linkTarget="_blank"
+            >
+              {typeof message.gemini_answer === "string" ? message.gemini_answer : ""}
+            </ReactMarkdown>
           </div>
         </div>
       </div>
