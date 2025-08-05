@@ -15,8 +15,13 @@ import "./App.css";
  * Design follows the exact specifications from the design notes.
  */
 
-// Configuration
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+/**
+ * Configuration - API base URL for chat endpoint.
+ * For production, use the official deployed backend:
+ *   https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001
+ * For development, override REACT_APP_API_BASE_URL in .env as needed.
+ */
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001";
 const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
