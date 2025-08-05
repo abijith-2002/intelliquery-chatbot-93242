@@ -55,7 +55,7 @@
   font-size: 1.12rem; /* ~17.9px if base is 16px, or slightly above var(--font-size-base) */
   line-height: 1.55;
   color: var(--text-primary); /* Make AI answer pop more than generic .response-content */
-  font-weight: var(--font-weight-medium);
+  font-weight: 400; /* Reduce AI font-weight for readability */
 }
 
 @media (max-width: 768px) {
