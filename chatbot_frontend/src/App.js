@@ -37,13 +37,8 @@ function generateSessionId() {
   return id;
 }
 
-// PUBLIC_INTERFACE
 function App() {
-  // State Management
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("theme") || "dark";
-  });
-  
+  // State Management (no theme switching)
   const [input, setInput] = useState("");
   
   const [messages, setMessages] = useState(() => {
@@ -66,9 +61,10 @@ function App() {
 
   // Effects
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    // Set the default theme (dark, or as set by .env/app config)
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("theme", "dark");
+  }, []);
 
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -83,14 +79,6 @@ function App() {
       console.warn("Failed to save conversation history:", error);
     }
   }, [messages]);
-
-  // PUBLIC_INTERFACE
-  /**
-   * Toggle between light and dark themes
-   */
-  const handleThemeToggle = useCallback(() => {
-    setTheme(prevTheme => prevTheme === "dark" ? "light" : "dark");
-  }, []);
 
   // PUBLIC_INTERFACE
   /**
@@ -192,10 +180,7 @@ function App() {
   // Main Render
   return (
     <div className="App">
-      <Header 
-        theme={theme} 
-        onThemeToggle={handleThemeToggle}
-      />
+      <Header />
 
       <main className="chat-main">
         <section className="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
