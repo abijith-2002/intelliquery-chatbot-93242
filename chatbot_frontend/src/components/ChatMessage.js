@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import './ChatMessage.css';
 
 // PUBLIC_INTERFACE
@@ -18,18 +19,9 @@ function ChatMessage({ message, index }) {
   if (isUser) {
     return (
       <div className="chat-message chat-user" data-message-id={index}>
-        <div className="chat-avatar" aria-label="You">
-          <span className="avatar-icon">👤</span>
-        </div>
         <div className="chat-bubble user-bubble">
           <div className="message-content">
             {message.query}
-          </div>
-          <div className="message-meta">
-            {new Date(message.timestamp).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
           </div>
         </div>
       </div>
@@ -40,33 +32,15 @@ function ChatMessage({ message, index }) {
     return (
       <div className="chat-message chat-assistant-direct" data-message-id={index}>
         <div className="assistant-content-direct">
-          <div className="response-section gemini-section">
-            <div className="response-header">
-              <span className="response-icon">✨</span>
-              <strong className="response-title">Gemini AI</strong>
-            </div>
-            <div className="response-content">
-              {message.gemini_answer}
-            </div>
-          </div>
-          
-          <div className="response-divider"></div>
-          
-          <div className="response-section rag-section">
-            <div className="response-header">
-              <span className="response-icon">📚</span>
-              <strong className="response-title">Knowledge Base</strong>
-            </div>
-            <div className="response-content rag-content">
-              {message.rag_answer}
-            </div>
-          </div>
-          
-          <div className="message-meta">
-            {new Date(message.timestamp).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
+          <div className="response-content">
+            <ReactMarkdown
+              components={{
+                a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer"/>,
+              }}
+              linkTarget="_blank"
+            >
+              {typeof message.gemini_answer === "string" ? message.gemini_answer : ""}
+            </ReactMarkdown>
           </div>
         </div>
       </div>

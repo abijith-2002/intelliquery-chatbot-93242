@@ -1,17 +1,16 @@
 import React from 'react';
 import './Header.css';
 
-// PUBLIC_INTERFACE
 /**
  * Header component for the Knowledge Chat interface
  * Matches design specifications exactly with chat icon and title
  * 
- * @param {Object} props - Component props
- * @param {string} props.theme - Current theme ('light' or 'dark')
- * @param {Function} props.onThemeToggle - Theme toggle handler
+ * No theme toggle button (theme is fixed by parent).
+ * 
  * @returns {JSX.Element} Header component
  */
-function Header({ theme, onThemeToggle }) {
+// PUBLIC_INTERFACE
+function Header() {
   return (
     <header className="chat-header" role="banner">
       <div className="header-brand">
@@ -20,17 +19,6 @@ function Header({ theme, onThemeToggle }) {
         </div>
         <h1 className="brand-title">Knowledge Chat</h1>
       </div>
-      
-      <button 
-        className="theme-toggle"
-        onClick={onThemeToggle}
-        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-        type="button"
-      >
-        <span className="theme-icon" role="img" aria-label={theme === 'dark' ? 'sun' : 'moon'}>
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </span>
-      </button>
     </header>
   );
 }
