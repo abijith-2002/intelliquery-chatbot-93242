@@ -102,11 +102,10 @@ body {
 /* Main App Container - Grid Layout as per Design Notes */
 .App {
   display: grid;
-  grid-template-rows: 60px 1fr 80px;
+  grid-template-rows: 60px 1fr;
   grid-template-areas: 
     "header"
-    "main"
-    "input";
+    "main";
   height: 100vh;
   background: var(--bg-primary);
   font-family: var(--font-family-primary);
@@ -123,7 +122,7 @@ body {
 
 .chat-area {
   flex: 1;
-  padding: var(--space-20) var(--space-6) var(--space-30) var(--space-6); /* 80px 24px 120px 24px */
+  padding: var(--space-20) var(--space-6) var(--space-20) var(--space-6); /* 80px 24px 80px 24px - bottom padding for fixed input */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -248,7 +247,7 @@ body {
 /* Responsive Design - Mobile breakpoint from Design Notes */
 @media (max-width: 768px) {
   .chat-area {
-    padding: var(--space-20) var(--space-4) var(--space-30) var(--space-4); /* 80px 16px 120px 16px */
+    padding: var(--space-20) var(--space-4) var(--space-16) var(--space-4); /* 80px 16px 64px 16px - reduced bottom padding for mobile */
   }
   
   .welcome-content {

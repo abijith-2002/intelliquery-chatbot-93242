@@ -39,20 +39,18 @@ function ChatInput({ value, onChange, onSubmit, disabled, placeholder = "Type yo
   };
 
   return (
-    <div className="chat-input-container">
-      <textarea
-        ref={textareaRef}
-        className="chat-textarea"
-        value={value}
-        onChange={onChange}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        rows={1}
-        maxLength={2000}
-        disabled={disabled}
-        aria-label="Type your message"
-      />
-    </div>
+    <textarea
+      ref={textareaRef}
+      className="chat-textarea"
+      value={value}
+      onChange={onChange}
+      onKeyDown={handleKeyDown}
+      placeholder={placeholder}
+      rows={1}
+      maxLength={2000}
+      disabled={disabled}
+      aria-label="Type your message"
+    />
   );
 }
 
