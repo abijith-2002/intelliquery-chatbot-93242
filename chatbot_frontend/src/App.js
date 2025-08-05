@@ -157,23 +157,22 @@ function App() {
       {/* Header/Nav */}
       <header className="chat-header">
         <div className="brand">
-          <span role="img" aria-label="query">💬</span> IntelliQuery Chatbot
+          <span className="header-avatar" aria-label="Bot">{/* avatar */} <svg width="20" height="20" viewBox="0 0 20 20" style={{display:"block"}} fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="8" r="4" fill="#fff"/><ellipse cx="10" cy="15.05" rx="6" ry="3.2" fill="#fff" fillOpacity="0.6"/></svg></span>
+          <span>Knowledge Bot</span>
         </div>
-        <button className="theme-toggle" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
-          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+        {/* Example user quick-action (from screenshot 2) */}
+        <button className="header-user-btn" type="button" style={{display:"none"}} tabIndex={-1}>
+          how to test
         </button>
       </header>
 
       {/* Main Layout */}
       <main className="chat-main">
-        {/* Sidebar (optional - future for chat sessions/history) */}
-        {/* <aside className="chat-sidebar"></aside> */}
-
         {/* Chat Area */}
         <section className="chat-area" aria-live="polite">
           {messages.length === 0 ? (
             <div className="chat-empty">
-              <p>Welcome! Ask me anything about our knowledge base or Gemini AI 🔍</p>
+              <p>Welcome! Ask me anything about knowledge or Gemini AI.</p>
             </div>
           ) : (
             messages.map((msg, idx) => renderMessage(msg, idx))
@@ -182,28 +181,36 @@ function App() {
         </section>
       </main>
 
-      {/* Chat input fixed at bottom */}
+      {/* Chat input bar */}
       <form className="chat-form" onSubmit={handleSend} autoComplete="off">
-        <textarea
-          className="chat-input"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleInputKey}
-          placeholder={pending ? "Awaiting response..." : "Type your message..."}
-          rows={1}
-          maxLength={2000}
-          disabled={pending}
-          aria-label="Message"
-          required
-        />
-        <button
-          className="btn-send"
-          type="submit"
-          disabled={pending || !input.trim()}
-          aria-label="Send"
-        >
-          {pending ? "..." : "➤"}
-        </button>
+        <div className="input-bar-pill" tabIndex={-1}>
+          <textarea
+            className="chat-input"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleInputKey}
+            placeholder={pending ? "Awaiting response..." : "Type your message..."}
+            rows={1}
+            maxLength={2000}
+            disabled={pending}
+            aria-label="Message"
+            required
+            style={{paddingTop:"13px", paddingBottom:"13px"}}
+          />
+          <button
+            className="btn-send"
+            type="submit"
+            disabled={pending || !input.trim()}
+            aria-label="Send"
+          >
+            {/* Paper plane SVG icon */}
+            {pending ? (
+              <svg className="btn-send-icon" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="rgba(255,255,255,0.1)" /><path d="M7.1 12.98l6.22-2.05c.62-.2.64-1.09.03-1.31L7.13 7.61c-.53-.18-1 .43-.73.9l1.14 2.01-.98 1.47c-.34.5.04 1.18.54 1.03zm.1 0" fill="#fff"/><circle cx="15.6" cy="11" r="1" fill="#fff"/></svg>
+            ) : (
+              <svg className="btn-send-icon" width="21" height="21" viewBox="0 0 21 21" fill="none"><path d="M5.064 9.239c-1.217.372-1.23 2.07-.021 2.463l9.786 3.271c1.145.382 2.147-.846 1.622-1.889l-3.674-7.169c-.525-1.043-2.003-.885-2.139.255l-.589 5.024-4.985-1.614zm.031-.07" fill="#fff"/></svg>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
