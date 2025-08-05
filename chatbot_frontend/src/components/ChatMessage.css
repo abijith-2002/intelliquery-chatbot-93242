@@ -16,6 +16,7 @@
   gap: 0;
   margin-bottom: var(--space-6);
   align-items: stretch;
+  margin-left: var(--space-6); /* Added margin for AI bubbles on left */
 }
 
 /* ====================== */
@@ -213,6 +214,7 @@
   
   .chat-assistant-direct {
     margin-bottom: var(--space-4);
+    margin-left: var(--space-3); /* Reduce left margin for AI on mobile */
   }
   
   .chat-assistant-direct .response-content {
