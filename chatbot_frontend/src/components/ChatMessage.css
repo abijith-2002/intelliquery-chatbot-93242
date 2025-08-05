@@ -53,7 +53,7 @@
    We'll bump font-size here for those containers. */
 .chat-assistant-direct .assistant-content-direct .response-content {
   font-size: 1.12rem; /* ~17.9px if base is 16px, or slightly above var(--font-size-base) */
-  line-height: 1.55;
+  line-height: 1.6; /* Increased line-height for better readability */
   color: var(--text-primary); /* Make AI answer pop more than generic .response-content */
   font-weight: 400; /* Reduce AI font-weight for readability */
 }
