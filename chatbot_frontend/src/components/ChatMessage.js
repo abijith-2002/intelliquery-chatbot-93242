@@ -38,11 +38,8 @@ function ChatMessage({ message, index }) {
 
   if (isAssistant) {
     return (
-      <div className="chat-message chat-assistant" data-message-id={index}>
-        <div className="chat-avatar" aria-label="AI Assistant">
-          <span className="avatar-icon">🤖</span>
-        </div>
-        <div className="chat-bubble assistant-bubble">
+      <div className="chat-message chat-assistant-direct" data-message-id={index}>
+        <div className="assistant-content-direct">
           <div className="response-section gemini-section">
             <div className="response-header">
               <span className="response-icon">✨</span>
@@ -86,11 +83,8 @@ function ChatMessage({ message, index }) {
  */
 export function LoadingMessage() {
   return (
-    <div className="chat-message chat-assistant loading-message">
-      <div className="chat-avatar" aria-label="AI Assistant">
-        <span className="avatar-icon">🤖</span>
-      </div>
-      <div className="chat-bubble assistant-bubble">
+    <div className="chat-message chat-assistant-direct loading-message">
+      <div className="assistant-content-direct">
         <div className="loading-content">
           <div className="loading-dots">
             <span></span>
