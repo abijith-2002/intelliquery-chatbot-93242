@@ -10,8 +10,17 @@ import "./App.css";
  *  - Session persisted in localStorage for long-term context
  */
 
-// Helpers
-const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000/chat";
+/**
+ * API base URL for chat endpoint, using environment variable for configurable deployment.
+ * @type {string}
+ */
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-39090-beta.beta01.cloud.kavia.ai:3001";
+
+/**
+ * The full /chat endpoint including the dynamic base.
+ * @type {string}
+ */
+const API_URL = `${API_BASE}/chat`;
 
 function generateSessionId() {
   // Unique, persistent session identifier in localStorage
