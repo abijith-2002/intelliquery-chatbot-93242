@@ -1,27 +1,22 @@
-/* Chat Input Component - Exact Design Implementation */
-.chat-input-form {
+/* Chat Input Component - Pill-shaped Input Only */
+.chat-input-container {
   grid-area: input;
-  height: 80px; /* Exact height from design notes */
+  height: 80px; /* Maintain consistent height from design */
   background: var(--bg-primary);
   border-top: 1px solid var(--border-subtle);
   padding: var(--space-4) var(--space-6); /* 16px 24px as specified */
   display: flex;
   align-items: center;
+  justify-content: center;
   position: relative;
-}
-
-.input-container {
-  width: 100%;
-  position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .chat-textarea {
   width: 100%;
-  height: 48px; /* Exact height from design */
-  border-radius: 24px; /* Exact border radius from design */
-  border: 1px solid var(--border-color);
+  max-width: 600px; /* Reasonable max-width for centering */
+  height: 48px; /* Maintain design height */
+  border-radius: 24px; /* Full pill shape border radius */
+  border: 2px solid var(--border-color); /* Stronger border for prominence */
   background: var(--input-bg); /* rgba(255, 255, 255, 0.05) */
   padding: 0 var(--space-5); /* 0 20px as specified */
   font-size: var(--font-size-base); /* 14px */
@@ -31,11 +26,13 @@
   resize: none;
   line-height: var(--line-height-normal);
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  text-align: center; /* Center placeholder text */
 }
 
 .chat-textarea::placeholder {
   color: var(--text-muted); /* #9ca3af as specified */
   font-weight: var(--font-weight-normal);
+  text-align: center;
 }
 
 .chat-textarea:hover {
@@ -45,6 +42,11 @@
 .chat-textarea:focus {
   border-color: var(--accent-blue); /* Focus state from design */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); /* Exact shadow from design */
+  text-align: left; /* Left-align text when typing */
+}
+
+.chat-textarea:not(:placeholder-shown) {
+  text-align: left; /* Left-align when there's content */
 }
 
 .chat-textarea:disabled {
@@ -53,105 +55,23 @@
   background: var(--overlay-light);
 }
 
-.send-button {
-  position: absolute;
-  right: var(--space-2); /* 8px from right as specified */
-  width: 32px; /* 32px × 32px as specified */
-  height: 32px;
-  background: var(--accent-blue);
-  color: var(--text-primary);
-  border: none;
-  border-radius: 50%; /* 50% for circular button */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-  opacity: 0;
-  visibility: hidden;
-}
-
-.send-button.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.send-button:hover:not(:disabled) {
-  background: var(--accent-blue-hover); /* Hover state from design */
-}
-
-.send-button:active:not(:disabled) {
-  background: var(--accent-blue-active);
-}
-
-.send-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.send-icon {
-  font-weight: bold;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.button-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid var(--text-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.input-footer {
-  display: none; /* Hide footer to match design */
-}
-
-/* Animations */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 /* Responsive Design - Mobile breakpoint */
 @media (max-width: 768px) {
-  .chat-input-form {
+  .chat-input-container {
     padding: var(--space-4) var(--space-4); /* 16px 16px as specified */
   }
   
   .chat-textarea {
     font-size: 16px; /* Prevent zoom on iOS */
     height: 44px;
-    border-radius: 22px;
+    border-radius: 22px; /* Maintain pill shape on mobile */
     padding: 0 var(--space-4);
-  }
-  
-  .send-button {
-    width: 28px;
-    height: 28px;
-    right: var(--space-2);
-  }
-  
-  .send-icon {
-    font-size: 12px;
-  }
-  
-  .loading-spinner {
-    width: 14px;
-    height: 14px;
+    max-width: none; /* Full width on mobile */
   }
 }
 
 /* Focus states for accessibility */
-.send-button:focus-visible {
+.chat-textarea:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
 }
@@ -159,22 +79,13 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .chat-textarea {
-    border-width: 2px;
-  }
-  
-  .send-button {
-    border: 2px solid transparent;
+    border-width: 3px; /* Stronger border for high contrast */
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .chat-textarea,
-  .send-button {
+  .chat-textarea {
     transition: none;
-  }
-  
-  .loading-spinner {
-    animation: none;
   }
 }
