@@ -6,13 +6,13 @@ import ErrorMessage from './components/ErrorMessage';
 import "./App.css";
 
 /**
- * IntelliQuery Chatbot Frontend
+ * Knowledge Chat Frontend
  * 
- * A modern, minimalistic, dark-themed chatbot interface built with React.
+ * A modern, minimalistic chat interface built with React.
  * Features real-time communication with FastAPI backend, displays both RAG 
  * and Gemini responses, and maintains conversation history with session persistence.
  * 
- * Design follows clean, card-based layout with responsive design for desktop and mobile.
+ * Design follows the exact specifications from the design notes.
  */
 
 // Configuration
@@ -184,19 +184,6 @@ function App() {
     setRetryableMessage(null);
   }, []);
 
-  // PUBLIC_INTERFACE
-  /**
-   * Clear conversation history
-   */
-  const handleClearConversation = useCallback(() => {
-    setMessages([]);
-    localStorage.removeItem("conversation_history");
-    setError(null);
-    setRetryableMessage(null);
-    // Generate new session ID
-    sessionId.current = generateSessionId();
-  }, []);
-
   // Main Render
   return (
     <div className="App">
@@ -210,36 +197,12 @@ function App() {
           {messages.length === 0 && !isLoading ? (
             <div className="chat-welcome">
               <div className="welcome-content">
-                <div className="welcome-icon">🧠</div>
-                <h2 className="welcome-title">Welcome to IntelliQuery!</h2>
+                <div className="welcome-icon">💬</div>
+                <h2 className="welcome-title">Welcome to Knowledge Chat</h2>
                 <p className="welcome-description">
-                  I'm your AI assistant powered by advanced knowledge retrieval and Google Gemini AI. 
-                  Ask me anything about our knowledge base, and I'll provide comprehensive answers 
-                  combining internal documents with AI-generated insights.
+                  Ask me anything and I'll provide answers using our knowledge base 
+                  and AI-powered insights.
                 </p>
-                <div className="welcome-features">
-                  <div className="feature-item">
-                    <span className="feature-icon">📚</span>
-                    <span>Knowledge Base Search</span>
-                  </div>
-                  <div className="feature-item">
-                    <span className="feature-icon">✨</span>
-                    <span>Gemini AI Enhancement</span>
-                  </div>
-                  <div className="feature-item">
-                    <span className="feature-icon">💬</span>
-                    <span>Context-Aware Conversations</span>
-                  </div>
-                </div>
-                {messages.length > 0 && (
-                  <button 
-                    className="clear-button"
-                    onClick={handleClearConversation}
-                    type="button"
-                  >
-                    Clear Conversation
-                  </button>
-                )}
               </div>
             </div>
           ) : (
@@ -272,7 +235,7 @@ function App() {
         onChange={handleInputChange}
         onSubmit={handleSendMessage}
         disabled={isLoading}
-        placeholder={isLoading ? "Processing your message..." : "Ask me anything..."}
+        placeholder={isLoading ? "Processing your message..." : "Type your message..."}
       />
     </div>
   );

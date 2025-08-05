@@ -4,7 +4,7 @@ import './ChatInput.css';
 // PUBLIC_INTERFACE
 /**
  * Chat input component with send functionality
- * Features auto-resize textarea, send button, and keyboard shortcuts
+ * Matches design specifications with rounded input and conditional send button
  * 
  * @param {Object} props - Component props
  * @param {string} props.value - Current input value
@@ -14,17 +14,8 @@ import './ChatInput.css';
  * @param {string} props.placeholder - Placeholder text
  * @returns {JSX.Element} ChatInput component
  */
-function ChatInput({ value, onChange, onSubmit, disabled, placeholder }) {
+function ChatInput({ value, onChange, onSubmit, disabled, placeholder = "Type your message..." }) {
   const textareaRef = useRef(null);
-
-  // Auto-resize textarea based on content
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-    }
-  }, [value]);
 
   // Focus textarea on component mount
   useEffect(() => {
@@ -59,6 +50,8 @@ function ChatInput({ value, onChange, onSubmit, disabled, placeholder }) {
     }
   };
 
+  const hasContent = value.trim().length > 0;
+
   return (
     <form className="chat-input-form" onSubmit={handleSubmit} noValidate>
       <div className="input-container">
@@ -77,9 +70,9 @@ function ChatInput({ value, onChange, onSubmit, disabled, placeholder }) {
         />
         
         <button
-          className="send-button"
+          className={`send-button ${hasContent ? 'show' : ''}`}
           type="submit"
-          disabled={disabled || !value.trim()}
+          disabled={disabled || !hasContent}
           aria-label={disabled ? "Sending message" : "Send message"}
         >
           {disabled ? (
@@ -90,17 +83,6 @@ function ChatInput({ value, onChange, onSubmit, disabled, placeholder }) {
             <span className="send-icon">→</span>
           )}
         </button>
-      </div>
-      
-      <div className="input-footer">
-        <div className="character-count">
-          <span className={value.length > 1800 ? 'count-warning' : ''}>
-            {value.length}/2000
-          </span>
-        </div>
-        <div className="input-hint">
-          Press <kbd>Enter</kbd> to send, <kbd>Shift + Enter</kbd> for new line
-        </div>
       </div>
     </form>
   );

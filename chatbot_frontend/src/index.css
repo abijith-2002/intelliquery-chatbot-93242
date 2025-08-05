@@ -1,7 +1,4 @@
-/* Global Styles and Reset */
-
-/* Import Google Fonts for better typography */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Global Styles - Knowledge Chat Design System */
 
 /* CSS Reset and Normalize */
 *,
@@ -15,16 +12,17 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  height: 100%;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-primary, #2c3e50);
+  background: var(--bg-primary, #374151);
   color: var(--text-primary, #ffffff);
-  min-height: 100vh;
+  height: 100vh;
   overflow-x: hidden;
   font-feature-settings: 'kern' 1;
   text-rendering: optimizeLegibility;
@@ -32,7 +30,7 @@ body {
 
 /* Root container */
 #root {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   isolation: isolate;
@@ -44,7 +42,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--button-primary, #3498db);
+  outline: 2px solid var(--accent-blue, #3b82f6);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -77,81 +75,80 @@ select {
 
 textarea {
   resize: vertical;
-  field-sizing: content;
 }
 
 /* Link improvements */
 a {
-  color: var(--button-primary, #3498db);
+  color: var(--accent-blue, #3b82f6);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--button-hover, #2980b9);
+  color: var(--accent-blue-hover, #2563eb);
   text-decoration: underline;
 }
 
 /* Typography improvements */
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 500;
+  line-height: 1.25;
   letter-spacing: -0.025em;
 }
 
 p {
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* Code elements */
 code {
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.875em;
-  background: var(--bg-secondary, #34495e);
+  background: var(--bg-secondary, #4b5563);
   padding: 0.125em 0.25em;
   border-radius: 0.25em;
 }
 
 /* Selection styling */
 ::selection {
-  background: var(--button-primary, #3498db);
+  background: var(--accent-blue, #3b82f6);
   color: #ffffff;
 }
 
 ::-moz-selection {
-  background: var(--button-primary, #3498db);
+  background: var(--accent-blue, #3b82f6);
   color: #ffffff;
 }
 
 /* Scrollbar improvements for WebKit browsers */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary, #2c3e50);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--input-border, #4a5f7a);
-  border-radius: 4px;
+  background: var(--border-color, #6b7280);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted, #7f8c8d);
+  background: var(--text-muted, #9ca3af);
 }
 
 ::-webkit-scrollbar-corner {
-  background: var(--bg-primary, #2c3e50);
+  background: transparent;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--input-border, #4a5f7a) var(--bg-primary, #2c3e50);
+  scrollbar-color: var(--border-color, #6b7280) transparent;
 }
 
 /* Accessibility improvements */
@@ -214,7 +211,7 @@ code {
   position: absolute;
   top: -40px;
   left: 6px;
-  background: var(--button-primary, #3498db);
+  background: var(--accent-blue, #3b82f6);
   color: white;
   padding: 8px;
   text-decoration: none;

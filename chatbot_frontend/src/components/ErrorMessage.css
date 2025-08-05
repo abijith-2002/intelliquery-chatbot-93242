@@ -1,29 +1,30 @@
-/* Error Message Component Styles */
+/* Error Message Component - Design System Implementation */
 .error-message {
-  background: linear-gradient(135deg, var(--error), #c0392b);
-  color: #ffffff;
-  padding: var(--spacing-md);
-  border-radius: 12px;
-  margin: var(--spacing-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: var(--space-4);
+  border-radius: 8px;
+  margin: var(--space-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  border: 1px solid #ef4444;
   animation: slideInError 0.3s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 .error-content {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--space-3);
   flex: 1;
 }
 
 .error-icon {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   flex-shrink: 0;
+  color: #ef4444;
 }
 
 .error-text {
@@ -32,102 +33,111 @@
 
 .error-text strong {
   display: block;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
 }
 
 .error-text p {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   margin: 0;
-  opacity: 0.9;
-  line-height: 1.4;
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
 }
 
 .error-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--space-2);
   align-items: center;
 }
 
 .error-button {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 14px;
-  font-weight: 600;
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  border: 1px solid var(--accent-blue);
+  border-radius: 6px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  transition: all var(--transition-normal);
+  font-family: var(--font-family-primary);
 }
 
 .error-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
 }
 
 .error-button:active {
-  transform: translateY(0);
+  background: var(--accent-blue-active);
+  border-color: var(--accent-blue-active);
 }
 
 .retry-button {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--space-2) var(--space-4);
 }
 
 .dismiss-button {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 14px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.dismiss-button:hover {
+  background: var(--overlay-light);
+  color: var(--text-secondary);
 }
 
 /* Animations */
 @keyframes slideInError {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.95);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .error-message {
-    margin: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
+    margin: var(--space-2);
+    padding: var(--space-3);
   }
   
   .error-content {
-    gap: var(--spacing-sm);
+    gap: var(--space-2);
   }
   
   .error-icon {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .error-text strong {
-    font-size: 15px;
+    font-size: 13px;
   }
   
   .error-text p {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .error-message {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--space-3);
   }
   
   .error-actions {
@@ -142,7 +152,7 @@
 
 /* Focus states for accessibility */
 .error-button:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
 }
 
@@ -150,7 +160,6 @@
 @media (prefers-contrast: high) {
   .error-message {
     border-width: 2px;
-    border-color: #ffffff;
   }
   
   .error-button {

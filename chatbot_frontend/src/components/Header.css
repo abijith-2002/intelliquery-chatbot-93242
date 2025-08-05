@@ -1,14 +1,13 @@
-/* Header Component Styles */
+/* Header Component - Exact Design Implementation */
 .chat-header {
-  flex-shrink: 0;
-  height: 70px;
-  background: var(--bg-secondary);
+  grid-area: header;
+  height: 60px;
+  background: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-lg);
-  border-bottom: 1px solid var(--input-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0 var(--space-6); /* 0 24px as per design */
+  border-bottom: 1px solid var(--border-subtle);
   position: relative;
   z-index: 10;
 }
@@ -16,69 +15,55 @@
 .header-brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--space-3); /* 12px margin-right as per design */
   user-select: none;
 }
 
-.brand-icon {
-  font-size: 28px;
+.chat-icon {
+  font-size: 24px; /* 24px × 24px as specified */
   line-height: 1;
+  color: var(--accent-blue);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--button-primary);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  width: 24px;
+  height: 24px;
 }
 
 .brand-title {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: var(--font-size-h3); /* 18px as specified */
+  font-weight: var(--font-weight-medium); /* 500 as specified */
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-}
-
-.brand-subtitle {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  padding: 4px 8px;
-  background: rgba(52, 152, 219, 0.1);
-  border-radius: 6px;
-  border: 1px solid rgba(52, 152, 219, 0.2);
+  letter-spacing: -0.025em; /* As specified in design notes */
+  line-height: var(--line-height-tight);
 }
 
 .theme-toggle {
-  background: var(--button-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 14px;
-  font-weight: 600;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
-  min-width: 80px;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-family: var(--font-family-primary);
 }
 
 .theme-toggle:hover {
-  background: var(--button-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+  background: var(--overlay-light);
+  border-color: var(--accent-blue);
 }
 
 .theme-toggle:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+  background: var(--overlay-medium);
 }
 
 .theme-icon {
@@ -86,60 +71,46 @@
   line-height: 1;
 }
 
-.theme-text {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* Responsive Design */
+/* Responsive Design - Mobile breakpoint */
 @media (max-width: 768px) {
   .chat-header {
-    height: 60px;
-    padding: 0 var(--spacing-md);
-  }
-  
-  .brand-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 24px;
-  }
-  
-  .brand-title {
-    font-size: 20px;
-  }
-  
-  .brand-subtitle {
-    font-size: 12px;
-    padding: 2px 6px;
-  }
-  
-  .theme-toggle {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: 12px;
-    min-width: 70px;
-  }
-  
-  .theme-text {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-header {
-    padding: 0 var(--spacing-sm);
+    padding: 0 var(--space-4); /* 0 16px as per design */
   }
   
   .header-brand {
-    gap: var(--spacing-sm);
+    gap: var(--space-2);
   }
   
-  .brand-subtitle {
-    display: none; /* Hide subtitle on very small screens */
+  .chat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+  
+  .brand-title {
+    font-size: 16px;
+  }
+  
+  .theme-toggle {
+    width: 32px;
+    height: 32px;
+    padding: var(--space-1);
+  }
+  
+  .theme-icon {
+    font-size: 14px;
   }
 }
 
 /* Focus states for accessibility */
 .theme-toggle:focus-visible {
-  outline: 2px solid var(--button-primary);
+  outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .theme-toggle {
+    border-width: 2px;
+  }
 }
