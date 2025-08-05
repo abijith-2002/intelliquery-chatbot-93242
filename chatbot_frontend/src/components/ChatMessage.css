@@ -39,12 +39,30 @@
   color: var(--text-primary);
   border-color: #576e94 !important;
   border-radius: 20px;
+  font-size: var(--font-size-base); /* 14px (default), kept for user bubble */
 }
 
 .assistant-bubble {
   background: var(--bg-secondary);
   color: var(--text-secondary);
   border-color: var(--border-subtle);
+  /* font-size for classic "assistant" bot style (not used for Gemini here but retained for completeness) */
+}
+
+/* Gemini/AI (Gemini answer) chat bubbles use .assistant-content-direct and .response-content inside .chat-assistant-direct.
+   We'll bump font-size here for those containers. */
+.chat-assistant-direct .assistant-content-direct .response-content {
+  font-size: 1.12rem; /* ~17.9px if base is 16px, or slightly above var(--font-size-base) */
+  line-height: 1.55;
+  color: var(--text-primary); /* Make AI answer pop more than generic .response-content */
+  font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 768px) {
+  /* Make Gemini response pop slightly more on mobile as well */
+  .chat-assistant-direct .assistant-content-direct .response-content {
+    font-size: 15px;
+  }
 }
 
 .assistant-content-direct {
