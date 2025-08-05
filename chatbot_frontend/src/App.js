@@ -144,6 +144,12 @@ function App() {
   }
 
   // --- MESSAGE LIST ---
+  /**
+   * MessageList: Renders chat messages, top-to-bottom, with new layout and bubbles per spec.
+   * - User: right-aligned, rounded-corner blue rectangle.
+   * - Assistant: left-aligned, full-width plain text (not in bubble).
+   * - Error: rendered as a left-aligned "bot" bubble (cq-bubble-error style).
+   */
   function MessageList({ messages }) {
     if (!messages.length)
       return (
@@ -151,70 +157,75 @@ function App() {
           <p>Welcome! Ask me anything…</p>
         </div>
       );
-    // Message rendering function
     return (
-      <>
-        {messages.map((msg, idx) =>
-          msg.role === "user" ? (
-            <div className="cq-msg-row cq-msg-user" key={idx}>
-              <div className="cq-avatar cq-avatar-user" aria-label="You">
-                <span role="img" aria-label="You">🧑</span>
-              </div>
-              <div className="cq-msg-bubble cq-bubble-user">
-                <span>{msg.query}</span>
-                <span className="cq-meta">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            </div>
-          ) : msg.role === "assistant" ? (
-            <div className="cq-msg-row cq-msg-bot" key={idx}>
-              <div className="cq-avatar" aria-label="Bot">
-                <span role="img" aria-label="AI">🤖</span>
-              </div>
-              <div className="cq-msg-bubble cq-bubble-bot">
-                <div className="cq-msg-section">
-                  <strong>Gemini:</strong>
-                  <span className="cq-msg-ai">{msg.gemini_answer}</span>
+      <div className="cq-message-list">
+        {messages.map((msg, idx) => {
+          if (msg.role === "user") {
+            return (
+              <div className="cq-msg-row cq-msg-user" key={idx}>
+                <div className="cq-avatar cq-avatar-user" aria-label="You">
+                  <span role="img" aria-label="You">🧑</span>
                 </div>
-                <div className="cq-msg-section cq-msg-secondary">
-                  <strong>RAG:</strong>
-                  <span className="cq-msg-ai">{msg.rag_answer}</span>
+                <div className="cq-msg-bubble cq-bubble-user">
+                  <span>{msg.query}</span>
+                  <span className="cq-meta">
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
-                <span className="cq-meta">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
               </div>
-            </div>
-          ) : msg.role === "error" ? (
-            // Render error "as bot bubble" with suitable icon and styling
-            <div className="cq-msg-row cq-msg-bot" key={idx}>
-              <div className="cq-avatar" aria-label="Bot">
-                <span role="img" aria-label="Warning">⚠️</span>
-              </div>
-              <div className="cq-msg-bubble cq-bubble-bot cq-bubble-error">
-                <div className="cq-msg-error-content">
-                  <span className="cq-error-icon" role="img" aria-label="Error">❗</span>
-                  <span>{msg.error}</span>
+            );
+          } else if (msg.role === "assistant") {
+            // New: FULL WIDTH, LEFT-ALIGNED, NO bubble, just plain text for both Gemini and RAG. No avatar.
+            return (
+              <div className="cq-msg-row cq-msg-ai-row" key={idx}>
+                <div className="cq-msg-ai-content">
+                  <div className="cq-msg-ai-block">
+                    <span className="cq-msg-ai-label">Gemini:</span>
+                    <span className="cq-msg-ai-text">{msg.gemini_answer}</span>
+                  </div>
+                  <div className="cq-msg-ai-block cq-msg-secondary">
+                    <span className="cq-msg-ai-label">RAG:</span>
+                    <span className="cq-msg-ai-text">{msg.rag_answer}</span>
+                  </div>
+                  <span className="cq-meta">
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
-                <span className="cq-meta">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
               </div>
-            </div>
-          ) : null
-        )}
+            );
+          } else if (msg.role === "error") {
+            // Error stays as a left-aligned "bot bubble" with avatar and special styling
+            return (
+              <div className="cq-msg-row cq-msg-bot" key={idx}>
+                <div className="cq-avatar" aria-label="Bot">
+                  <span role="img" aria-label="Warning">⚠️</span>
+                </div>
+                <div className="cq-msg-bubble cq-bubble-bot cq-bubble-error">
+                  <div className="cq-msg-error-content">
+                    <span className="cq-error-icon" role="img" aria-label="Error">❗</span>
+                    <span>{msg.error}</span>
+                  </div>
+                  <span className="cq-meta">
+                    {new Date(msg.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+            );
+          } else {
+            return null;
+          }
+        })}
         <div ref={chatEndRef} />
-      </>
+      </div>
     );
   }
 

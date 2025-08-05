@@ -101,20 +101,32 @@ body,
   margin-top: 3.5rem;
 }
 
+.cq-message-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* Ensures messages start from the top, not bottom */
+  justify-content: flex-start;
+  gap: 0;
+}
+
 .cq-msg-row {
   display: flex;
   align-items: flex-end;
   margin-bottom: 20px;
   gap: 0.9rem;
+  width: 100%;
 }
 .cq-msg-user {
   flex-direction: row-reverse;
   justify-content: flex-end;
 }
+
 .cq-msg-user .cq-avatar {
   background: var(--cq-user-bubble-bg);
   color: var(--cq-primary-text);
 }
+
 .cq-avatar {
   width: 38px;
   height: 38px;
@@ -147,6 +159,88 @@ body,
   flex-direction: column;
   gap: 0.2rem;
 }
+
+.cq-msg-row.cq-msg-user {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.cq-bubble-user {
+  background: var(--cq-user-bubble-bg);
+  color: var(--cq-user-bubble-text);
+  border-radius: 22px 16px 16px 15px;
+  align-items: flex-end;
+  margin-left: 24vw; /* right align user bubble, but not all the way to edge */
+  margin-right: 0;
+  box-shadow: 0 1px 9px 0 rgba(60,152,245,0.07);
+}
+
+.cq-msg-row.cq-msg-user .cq-msg-bubble {
+  align-items: flex-end;
+}
+
+/* --- NEW: AI/Assistant response as plain text --- */
+.cq-msg-row.cq-msg-ai-row {
+  width: 100%;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin-bottom: 20px;
+  /* No gap needed: no avatar, just text */
+}
+.cq-msg-ai-content {
+  background: none !important;
+  color: var(--cq-primary-text);
+  width: 100%;
+  padding-left: 0px;
+  padding-right: 0px;
+  box-shadow: none;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.19em;
+}
+.cq-msg-ai-block {
+  margin-bottom: 1px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+  width: 100%;
+  /* The text will wrap to next line naturally, full width */
+}
+.cq-msg-ai-label {
+  font-weight: 600;
+  color: var(--cq-accent-blue);
+  margin-right: 3px;
+  font-size: 1.04em;
+  min-width: 54px;
+  display: inline-block;
+  letter-spacing: 0.01em;
+}
+.cq-msg-ai-text {
+  color: var(--cq-primary-text);
+  font-weight: 400;
+  font-size: 1.07em;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  /* Make it as plain as possible, no background */
+  background: none;
+  border-radius: 0;
+}
+
+/* Subtle difference for RAG/secondary
+   You can tune font style/opacity to differentiate if needed */
+.cq-msg-ai-block.cq-msg-secondary .cq-msg-ai-label {
+  color: var(--cq-secondary-text);
+  font-weight: 500;
+}
+.cq-msg-ai-block.cq-msg-secondary .cq-msg-ai-text {
+  color: var(--cq-secondary-text);
+  opacity: 0.92;
+  font-style: italic;
+}
+
+/* Error bubbles kept as bot-style bubble (see .cq-bubble-error) */
+
 
 .cq-msg-bot > .cq-msg-bubble,
 .cq-bubble-bot {
