@@ -1,7 +1,8 @@
 .auth-form {
   background: var(--bg-secondary);
   padding: var(--space-8) var(--space-6);
-  max-width: 400px;
+  max-width: 520px;
+  width: 100%;
   margin: 24px auto 0 auto;
   border-radius: 12px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.30);
@@ -112,9 +113,17 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .auth-form {
+    max-width: 95vw;
+    padding: var(--space-6) var(--space-4);
+    margin: 16px auto 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
   .auth-form {
     max-width: 98vw;
-    padding: var(--space-6) var(--space-2);
+    padding: var(--space-6) var(--space-3);
   }
 }

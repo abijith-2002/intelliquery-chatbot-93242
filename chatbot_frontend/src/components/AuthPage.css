@@ -7,12 +7,27 @@
   padding-bottom: 48px;
 }
 
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .auth-form-container {
+    max-width: 100%;
+    padding: 0 var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-form-container {
+    padding: 0 var(--space-2);
+  }
+}
+
 .auth-form-container {
   width: 100%;
-  max-width: 430px;
+  max-width: 560px;
   margin: 0 auto;
   flex: 1;
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  padding: 0 var(--space-4);
 }
