@@ -5,7 +5,9 @@ import "./ChatList.css";
  * ChatList - displays a list of previous chat sessions with 'Resume' options
  * 
  * @param {Object} props
- * @param {Array<{id: string, title: string, lastActive: number, preview: string}>} props.chats
+ * @param {Array<{id: string, title: string, lastActive: number, preview: string, messages: Array}>} props.chats
+ *  NOTE: The 'chats' array must only include sessions that have at least one message.
+ *  The DashboardPage is responsible for filtering out empty chat sessions before passing them here.
  * @param {Function} props.onResumeChat - Handler(chatId)
  */
 // PUBLIC_INTERFACE

@@ -117,18 +117,10 @@ function App() {
   }, [chatSessions]);
 
   // Helper: create new chat session, returns id and sets state
+  // We do not immediately insert a session into chatSessions until the first message is sent.
   const handleStartNewChat = useCallback(() => {
     const now = Date.now();
     const newId = "session-" + Math.random().toString(36).substr(2, 12) + "-" + now;
-    const newTitle = "New Chat " + (chatSessions.length + 1);
-    const newSession = {
-      id: newId,
-      title: newTitle,
-      lastActive: now,
-      preview: "",
-      messages: [],
-    };
-    setChatSessions((old) => [newSession, ...old]);
     setActiveSessionId(newId);
     setMessages([]);
     setInput("");
@@ -189,27 +181,55 @@ function App() {
   // Save messages to session in chatSessions
   useEffect(() => {
     if (!activeSessionId) return;
-    setChatSessions((prev) =>
-      prev.map((c) =>
-        c.id === activeSessionId
-          ? {
-              ...c,
+
+    setChatSessions((prev) => {
+      // If this session already exists, update it as before
+      const foundIndex = prev.findIndex((c) => c.id === activeSessionId);
+      if (foundIndex !== -1) {
+        // Remove session if it no longer has messages
+        if (!messages || messages.length === 0) {
+          return prev.filter((c) => c.id !== activeSessionId);
+        }
+        // Update session
+        return prev.map((c) =>
+          c.id === activeSessionId
+            ? {
+                ...c,
+                messages,
+                lastActive:
+                  messages && messages.length
+                    ? messages[messages.length - 1].timestamp
+                    : c.lastActive,
+                preview:
+                  messages && messages.length
+                    ? messages
+                        .slice()
+                        .reverse()
+                        .find((msg) => msg.role === "user")?.query || ""
+                    : "",
+              }
+            : c
+        );
+      } else {
+        // If messages is non-empty, add this as a new session
+        if (messages && messages.length > 0) {
+          const firstUserMessage = messages.find((msg) => msg.role === "user");
+          return [
+            {
+              id: activeSessionId,
+              title: "New Chat " + (prev.length + 1),
+              lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
+              preview: firstUserMessage ? firstUserMessage.query : "",
               messages,
-              lastActive:
-                messages && messages.length
-                  ? messages[messages.length - 1].timestamp
-                  : c.lastActive,
-              preview:
-                messages && messages.length
-                  ? messages
-                      .slice()
-                      .reverse()
-                      .find((msg) => msg.role === "user")?.query || ""
-                  : "",
-            }
-          : c
-      )
-    );
+            },
+            ...prev,
+          ];
+        } else {
+          // Don't create a session if no messages
+          return prev;
+        }
+      }
+    });
     // eslint-disable-next-line
   }, [messages, activeSessionId]);
 

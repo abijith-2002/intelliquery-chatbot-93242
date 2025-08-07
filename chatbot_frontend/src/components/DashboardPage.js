@@ -21,6 +21,11 @@ function DashboardPage({ user, onLogout, chats, onStartNewChat, onResumeChat }) 
     document.documentElement.setAttribute("data-theme", "dark");
   }, []);
 
+  // Only show chats with at least one message
+  const chatsWithMessages = Array.isArray(chats)
+    ? chats.filter((session) => Array.isArray(session.messages) && session.messages.length > 0)
+    : [];
+
   return (
     <div className="dashboard-page">
       <Header onLogout={onLogout} />
@@ -31,7 +36,7 @@ function DashboardPage({ user, onLogout, chats, onStartNewChat, onResumeChat }) 
         </section>
         <section className="dashboard-chats-section" aria-label="Previous Chats">
           <h3 className="chats-title">Previous Chats</h3>
-          <ChatList chats={chats} onResumeChat={onResumeChat} />
+          <ChatList chats={chatsWithMessages} onResumeChat={onResumeChat} />
         </section>
       </main>
     </div>
