@@ -102,15 +102,67 @@
   }
 }
 
+/* Logout Button */
+.logout-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-primary);
+}
+
+.logout-button:hover {
+  background: var(--overlay-light);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.logout-button:active {
+  background: var(--overlay-medium);
+}
+
+.logout-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.logout-text {
+  font-size: var(--font-size-sm);
+}
+
 /* Focus states for accessibility */
-.theme-toggle:focus-visible {
+.logout-button:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .theme-toggle {
+  .logout-button {
     border-width: 2px;
+  }
+}
+
+/* Responsive Design - Mobile breakpoint */
+@media (max-width: 768px) {
+  .logout-button {
+    padding: var(--space-1) var(--space-2);
+    gap: var(--space-1);
+  }
+  
+  .logout-text {
+    display: none; /* Hide text on mobile, show only icon */
+  }
+  
+  .logout-icon {
+    font-size: 16px;
   }
 }

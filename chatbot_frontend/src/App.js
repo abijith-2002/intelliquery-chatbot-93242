@@ -57,6 +57,34 @@ function App() {
     } catch (e) {}
   };
 
+  // PUBLIC_INTERFACE
+  /**
+   * Handle user logout - clear authentication state and session data
+   */
+  const handleLogout = useCallback(() => {
+    // Clear user authentication state
+    setUser(null);
+    
+    // Clear all user-related data from localStorage
+    try {
+      localStorage.removeItem("auth_user");
+      localStorage.removeItem("conversation_history");
+      localStorage.removeItem("chat_session_id");
+    } catch (e) {
+      console.warn("Failed to clear localStorage on logout:", e);
+    }
+    
+    // Reset chat state
+    setMessages([]);
+    setInput("");
+    setError(null);
+    setRetryableMessage(null);
+    setIsLoading(false);
+    
+    // Generate new session ID for next login
+    sessionId.current = generateSessionId();
+  }, []);
+
   // -- The below block is the existing chat logic, rendered only if logged in:
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState(() => {
@@ -160,7 +188,7 @@ function App() {
   // Main Chat UI if logged in
   return (
     <div className="App">
-      <Header />
+      <Header onLogout={handleLogout} />
       <main className="chat-main">
         <section className="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
           {messages.length === 0 && !isLoading ? (
