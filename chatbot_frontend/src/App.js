@@ -3,6 +3,7 @@ import Header from './components/Header';
 import ChatMessage, { LoadingMessage } from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import ErrorMessage from './components/ErrorMessage';
+import AuthPage from './components/AuthPage';
 import "./App.css";
 
 /**
@@ -38,9 +39,26 @@ function generateSessionId() {
 }
 
 function App() {
-  // State Management (no theme switching)
+  // Simple state for login/user storage (in real app use global context/JWT etc)
+  const [user, setUser] = useState(() => {
+    try {
+      const session = localStorage.getItem("auth_user");
+      return session ? JSON.parse(session) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Authenticate callback from AuthPage
+  const handleAuth = (userObj) => {
+    setUser(userObj);
+    try {
+      localStorage.setItem("auth_user", JSON.stringify(userObj));
+    } catch (e) {}
+  };
+
+  // -- The below block is the existing chat logic, rendered only if logged in:
   const [input, setInput] = useState("");
-  
   const [messages, setMessages] = useState(() => {
     try {
       const stored = localStorage.getItem("conversation_history");
@@ -50,68 +68,43 @@ function App() {
       return [];
     }
   });
-  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retryableMessage, setRetryableMessage] = useState(null);
-  
-  // Refs
   const chatEndRef = useRef(null);
   const sessionId = useRef(generateSessionId());
 
-  // Effects
   useEffect(() => {
-    // Set the default theme (dark, or as set by .env/app config)
     document.documentElement.setAttribute("data-theme", "dark");
     localStorage.setItem("theme", "dark");
   }, []);
 
   useEffect(() => {
-    // Auto-scroll to bottom when new messages arrive
-    if (chatEndRef.current) {
+    if (chatEndRef.current)
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-    
-    // Persist conversation to localStorage
     try {
       localStorage.setItem("conversation_history", JSON.stringify(messages));
-    } catch (error) {
-      console.warn("Failed to save conversation history:", error);
-    }
+    } catch (error) {}
   }, [messages]);
 
-  // PUBLIC_INTERFACE
-  /**
-   * Handle input change
-   * @param {Event} e - Input change event
-   */
   const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
   }, []);
 
-  // PUBLIC_INTERFACE
-  /**
-   * Handle message submission
-   * @param {Event} e - Form submission event
-   */
   const handleSendMessage = useCallback(async (e) => {
     e.preventDefault();
-    
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
-
     const userMessage = {
       role: "user",
       query: trimmedInput,
       timestamp: Date.now(),
     };
-    
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInput("");
     setIsLoading(true);
     setError(null);
     setRetryableMessage(trimmedInput);
-
     try {
       const response = await fetch(CHAT_ENDPOINT, {
         method: "POST",
@@ -124,42 +117,28 @@ function App() {
           query: trimmedInput,
         }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`);
       }
-
       const data = await response.json();
-
-      // Add assistant response
       const assistantMessage = {
         role: "assistant",
         rag_answer: data.rag_answer || "No knowledge base response available",
         gemini_answer: data.gemini_answer || "No Gemini response available",
         timestamp: Date.now(),
       };
-      
       setMessages(prevMessages => [...prevMessages, assistantMessage]);
       setRetryableMessage(null);
-      
     } catch (err) {
-      console.error("Chat error:", err);
       setError(err.message || "Failed to get response. Please try again.");
-      
-      // Remove the optimistically added user message on error
       setMessages(prevMessages => prevMessages.slice(0, -1));
-      setInput(trimmedInput); // Restore input
-      
+      setInput(trimmedInput);
     } finally {
       setIsLoading(false);
     }
   }, [input, isLoading]);
 
-  // PUBLIC_INTERFACE
-  /**
-   * Retry last failed message
-   */
   const handleRetry = useCallback(() => {
     if (retryableMessage) {
       setInput(retryableMessage);
@@ -168,20 +147,20 @@ function App() {
     }
   }, [retryableMessage]);
 
-  // PUBLIC_INTERFACE
-  /**
-   * Dismiss error message
-   */
   const handleDismissError = useCallback(() => {
     setError(null);
     setRetryableMessage(null);
   }, []);
 
-  // Main Render
+  // -- App routing: If no user, show AuthPage, else show chat.
+  if (!user) {
+    return <AuthPage onAuth={handleAuth} />;
+  }
+
+  // Main Chat UI if logged in
   return (
     <div className="App">
       <Header />
-
       <main className="chat-main">
         <section className="chat-area" role="log" aria-live="polite" aria-label="Chat messages">
           {messages.length === 0 && !isLoading ? (
@@ -207,7 +186,6 @@ function App() {
               {isLoading && <LoadingMessage />}
             </>
           )}
-          
           {error && (
             <ErrorMessage 
               message={error}
@@ -215,7 +193,6 @@ function App() {
               onDismiss={handleDismissError}
             />
           )}
-          
           <div ref={chatEndRef} />
         </section>
       </main>

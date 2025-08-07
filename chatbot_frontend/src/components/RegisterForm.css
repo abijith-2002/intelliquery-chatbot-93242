@@ -1,0 +1,120 @@
+.auth-form {
+  background: var(--bg-secondary);
+  padding: var(--space-8) var(--space-6);
+  max-width: 400px;
+  margin: 24px auto 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.30);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border: 1px solid var(--border-subtle);
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0 0 var(--space-4) 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-group > label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.form-group input {
+  background: var(--input-bg);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  border-color: var(--accent-blue);
+  outline: none;
+  background: var(--bg-tertiary);
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.form-api-error {
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-align: center;
+  background: var(--overlay-medium);
+  padding: 6px 0;
+  border-radius: 4px;
+}
+
+.auth-btn {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: var(--space-2);
+  transition: background var(--transition-fast);
+}
+
+.auth-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.auth-btn:hover:enabled {
+  background: var(--accent-blue-hover);
+}
+
+.switch-auth-link {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.switch-link-btn {
+  background: none;
+  color: var(--accent-blue);
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+  margin-left: 2px;
+}
+
+.switch-link-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .auth-form {
+    max-width: 98vw;
+    padding: var(--space-6) var(--space-2);
+  }
+}
