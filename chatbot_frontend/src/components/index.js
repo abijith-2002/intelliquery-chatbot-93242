@@ -6,3 +6,6 @@ export { default as ErrorMessage } from './ErrorMessage';
 export { default as RegisterForm } from './RegisterForm';
 export { default as LoginForm } from './LoginForm';
 export { default as AuthPage } from './AuthPage';
+export { default as DashboardPage } from './DashboardPage';
+export { default as ChatList } from './ChatList';
+export { default as StartNewChatButton } from './StartNewChatButton';

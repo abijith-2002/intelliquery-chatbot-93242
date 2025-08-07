@@ -1,0 +1,38 @@
+.new-chat-btn {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.07);
+  font-family: var(--font-family-primary);
+}
+
+.new-chat-btn:hover,
+.new-chat-btn:focus {
+  background: var(--accent-blue-hover);
+  outline: none;
+}
+
+.new-chat-btn:active {
+  background: var(--accent-blue-active);
+}
+
+.new-chat-btn-icon {
+  font-size: 20px;
+  margin-right: 4px;
+}
+
+@media (max-width: 600px) {
+  .new-chat-btn {
+    font-size: 15px;
+    padding: 10px 16px;
+  }
+}
