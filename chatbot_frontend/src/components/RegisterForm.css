@@ -168,9 +168,20 @@
 }
 
 .password-toggle-icon {
-  font-size: 16px;
+  width: 16px;
+  height: 16px;
   line-height: 1;
   user-select: none;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.password-toggle-btn:hover:not(:disabled) .password-toggle-icon {
+  color: var(--text-secondary);
+}
+
+.password-toggle-btn:focus-visible .password-toggle-icon {
+  color: var(--accent-blue);
 }
 
 @media (max-width: 480px) {
@@ -185,6 +196,7 @@
   }
   
   .password-toggle-icon {
-    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }

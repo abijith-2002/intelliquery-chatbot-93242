@@ -154,9 +154,54 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
             aria-label={showPassword ? "Hide password" : "Show password"}
             title={showPassword ? "Hide password" : "Show password"}
           >
-            <span className="password-toggle-icon">
-              {showPassword ? "👁️" : "👁️‍🗨️"}
-            </span>
+            <svg 
+              className="password-toggle-icon" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {showPassword ? (
+                // Eye slash icon for "hide password"
+                <>
+                  <path
+                    d="M3 3l18 18M10.5 10.677a2 2 0 002.823 2.823"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M7.362 7.561C5.68 8.74 4.279 10.42 3.515 12.5c1.41 3.84 5.022 6.5 8.485 6.5a8.39 8.39 0 003.455-.736m2.078-2.89c.696-.734 1.313-1.582 1.852-2.557.75-1.36.75-2.896 0-4.257C17.523 4.416 15.042 2 12 2a9.284 9.284 0 00-2.362.307"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </>
+              ) : (
+                // Eye icon for "show password"
+                <>
+                  <path
+                    d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </>
+              )}
+            </svg>
           </button>
         </div>
         {errors.password && <div className="form-error">{errors.password}</div>}
