@@ -100,13 +100,7 @@ function App() {
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
-    const userMessage = {
-      role: "user",
-      query: trimmedInput,
-      timestamp: Date.now(),
-    };
-    
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    // Optimistically clear input and set loading state, but do NOT add the user message here.
     setInput("");
     setIsLoading(true);
     setError(null);
@@ -132,24 +126,41 @@ function App() {
 
       const data = await response.json();
 
-      // Add assistant response
-      const assistantMessage = {
-        role: "assistant",
-        rag_answer: data.rag_answer || "No knowledge base response available",
-        gemini_answer: data.gemini_answer || "No Gemini response available",
-        timestamp: Date.now(),
-      };
-      
-      setMessages(prevMessages => [...prevMessages, assistantMessage]);
+      // Use backend's returned conversation_history as the source of truth for messages.
+      // Format to fit frontend's expected display format for each message.
+      const formattedMessages = data.conversation_history.map((m) => {
+        if (m.type === "human") {
+          return {
+            role: "user",
+            query: m.content,
+            timestamp: Date.now(),
+          };
+        } else if (m.type === "ai") {
+          return {
+            role: "assistant",
+            rag_answer: data.rag_answer || "",
+            gemini_answer: data.gemini_answer || "",
+            timestamp: Date.now(),
+          };
+        }
+        // fallback for unknown types
+        return {
+          role: "assistant",
+          rag_answer: data.rag_answer || "",
+          gemini_answer: data.gemini_answer || "",
+          timestamp: Date.now(),
+        };
+      });
+
+      // To ensure no duplicates, display full message history but keep only appropriately formatted new messages.
+      setMessages(formattedMessages);
       setRetryableMessage(null);
-      
+
     } catch (err) {
       console.error("Chat error:", err);
       setError(err.message || "Failed to get response. Please try again.");
-      
-      // Remove the optimistically added user message on error
-      setMessages(prevMessages => prevMessages.slice(0, -1));
-      setInput(trimmedInput); // Restore input
+      // No need to revert message state since we did not modify messages locally on send
+      setInput(trimmedInput); // Restore input if failed
       
     } finally {
       setIsLoading(false);
