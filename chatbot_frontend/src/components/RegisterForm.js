@@ -15,6 +15,7 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
   const REGISTER_ENDPOINT = `${API_BASE_URL}/register`;
 
@@ -26,6 +27,14 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
     setApiError(""); // Clear backend errors on change
+  };
+
+  // PUBLIC_INTERFACE
+  /**
+   * Toggle password visibility
+   */
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   // PUBLIC_INTERFACE
@@ -123,19 +132,33 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
       </div>
       <div className="form-group">
         <label htmlFor="reg-password">Password</label>
-        <input
-          id="reg-password"
-          name="password"
-          type="password"
-          minLength={6}
-          maxLength={128}
-          autoComplete="new-password"
-          value={form.password}
-          onChange={handleChange}
-          disabled={loading}
-          required
-          aria-invalid={errors.password ? "true" : undefined}
-        />
+        <div className="password-input-wrapper">
+          <input
+            id="reg-password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            minLength={6}
+            maxLength={128}
+            autoComplete="new-password"
+            value={form.password}
+            onChange={handleChange}
+            disabled={loading}
+            required
+            aria-invalid={errors.password ? "true" : undefined}
+          />
+          <button
+            type="button"
+            className="password-toggle-btn"
+            onClick={togglePasswordVisibility}
+            disabled={loading}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            <span className="password-toggle-icon">
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </span>
+          </button>
+        </div>
         {errors.password && <div className="form-error">{errors.password}</div>}
       </div>
       {apiError && (
