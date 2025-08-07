@@ -46,13 +46,16 @@ function useStreamingText(text, enabled, speed = 15) {
  * @param {number} props.index - Message index for key
  * @returns {JSX.Element} ChatMessage component
  */
-function ChatMessage({ message, index }) {
+function ChatMessage({ message, index, isMostRecentAssistant }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
-  // Only stream when this is an assistant message
-  const shouldAnimate = isAssistant && typeof message.gemini_answer === "string";
-  // For streaming, animate the gemini_answer only (the knowledge answer remains static if present)
+  // For assistant: Only stream/animate if it's the most recent in-progress assistant message
+  let shouldAnimate = false;
+  if (isAssistant && typeof message.gemini_answer === "string") {
+    // Only animate if flagged by props as most recent (App.js changes will set this)
+    shouldAnimate = !!isMostRecentAssistant;
+  }
   const streamingGeminiText = useStreamingText(
     (shouldAnimate ? message.gemini_answer : ""),
     shouldAnimate && message.gemini_answer != null
@@ -81,7 +84,9 @@ function ChatMessage({ message, index }) {
               }}
               linkTarget="_blank"
             >
-              {typeof streamingGeminiText === "string" ? streamingGeminiText : ""}
+              {typeof streamingGeminiText === "string" && shouldAnimate
+                ? streamingGeminiText
+                : message.gemini_answer}
             </ReactMarkdown>
           </div>
         </div>

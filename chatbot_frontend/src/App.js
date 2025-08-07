@@ -90,18 +90,44 @@ function App() {
     setInput(e.target.value);
   }, []);
 
+  /**
+   * Check if a response for the most recent user message is already rendered.
+   * Returns true if an assistant response immediately follows the last user message.
+   */
+  function isLastResponseRendered() {
+    if (messages.length < 2) return false;
+    // Find last user message index
+    let lastUserIdx = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        lastUserIdx = i;
+        break;
+      }
+    }
+    if (lastUserIdx === -1) return false;
+    // Check if next message is assistant
+    if (
+      messages[lastUserIdx + 1] &&
+      messages[lastUserIdx + 1].role === "assistant"
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   // PUBLIC_INTERFACE
   /**
    * Stream AI response from the backend and update UI as chunks arrive.
-   * First, try using WebSocket (if available). Fallback on HTTP chunk streaming (fetch+SSE/eventStream).
+   * Only stream if a response for the latest user message does NOT already exist.
+   * If already exists, do nothing.
    */
   const streamAIResponse = async ({ query }) => {
-    // --- WebSocket fallback plan ---
-    // We'll try to connect to /chat/ws if exists. Otherwise, fallback to chunked fetch (SSE or text/event-stream).
-    // --- NOTE: For future - the /chat/wsinfo endpoint can provide upgrade hints ---
+    // Prevent duplicate streaming for already rendered responses
+    if (isLastResponseRendered()) {
+      setStreamingAssistant(null);
+      return;
+    }
 
-    // This implementation uses HTTP chunked streaming (Fetch+ ReadableStream) for incremental updates.
-    // If backend supports event-stream or data chunking, process it.
     setStreamingAssistant({
       role: "assistant",
       rag_answer: "",
@@ -206,7 +232,7 @@ function App() {
   };
 
   // PUBLIC_INTERFACE
-  /**
+  /** 
    * Handle message submission (with streaming)
    */
   const handleSendMessage = useCallback(async (e) => {
@@ -262,6 +288,18 @@ function App() {
     setRetryableMessage(null);
   }, []);
 
+  // Figure out which message should stream animation during rendering
+  let lastAssistantIdx = -1;
+  if (isLoading && streamingAssistant) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant") {
+        lastAssistantIdx = i;
+        break;
+      }
+    }
+    // (If none, will be -1.)
+  }
+
   // Main Render
   return (
     <div className="App">
@@ -282,15 +320,21 @@ function App() {
             </div>
           ) : (
             <>
-              {messages.map((message, index) => (
-                <ChatMessage 
-                  key={`${message.timestamp}-${index}`}
-                  message={message} 
-                  index={index} 
-                />
-              ))}
+              {messages.map((message, index) => {
+                // Only send "isMostRecentAssistant" to the last (potentially streaming) assistant message
+                const isMostRecentAssistant =
+                  isLoading && streamingAssistant && message.role === "assistant" && index === messages.length - 1;
+                return (
+                  <ChatMessage
+                    key={`${message.timestamp}-${index}`}
+                    message={message}
+                    index={index}
+                    isMostRecentAssistant={!!isMostRecentAssistant}
+                  />
+                );
+              })}
               {isLoading && streamingAssistant && (
-                <ChatMessage message={streamingAssistant} index={messages.length} />
+                <ChatMessage message={streamingAssistant} index={messages.length} isMostRecentAssistant={true} />
               )}
               {isLoading && !streamingAssistant && <LoadingMessage />}
             </>
