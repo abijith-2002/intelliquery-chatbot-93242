@@ -8,9 +8,20 @@
   max-width: 325px;
   height: 100vh;
   overflow-y: auto;
-  transition: background var(--transition-normal);
+  /* Add width transition for smooth collapse/expand */
+  transition: background var(--transition-normal), width 0.22s var(--transition-fast), min-width 0.22s, max-width 0.22s, left 0.22s;
   padding: 0;
   z-index: 8;
+}
+
+/* Hide sidebar when not open (optional, since component can be conditionally rendered, but safe for mobile) */
+.sidebar-container.sidebar-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  border-right: none;
+  padding: 0;
 }
 
 .sidebar-header {

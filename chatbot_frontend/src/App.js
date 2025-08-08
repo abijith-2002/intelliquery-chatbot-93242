@@ -495,14 +495,61 @@ function App() {
   // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
     return (
-      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
-        <Sidebar
-          chats={chatSessions}
-          activeSessionId={activeSessionId}
-          onSelectChat={handleSelectChatFromSidebar}
-          onNewChat={handleStartNewChat}
-        />
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
+      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh", position: "relative" }}>
+        {/* Sidebar with hide/show */}
+        {sidebarOpen && (
+          <Sidebar
+            chats={chatSessions}
+            activeSessionId={activeSessionId}
+            onSelectChat={handleSelectChatFromSidebar}
+            onNewChat={handleStartNewChat}
+          />
+        )}
+        {/* Hide button overlay when sidebar is open, show button when hidden */}
+        {/* Position absolute at left center */}
+        <button
+          className="sidebar-toggle-btn"
+          aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+          onClick={() => setSidebarOpen((prev) => !prev)}
+          style={{
+            position: 'absolute',
+            left: sidebarOpen ? 260 : 0,
+            top: 24,
+            zIndex: 300,
+            background: "var(--accent-blue)",
+            color: "var(--text-primary)",
+            border: "none",
+            borderRadius: "0 16px 16px 0",
+            width: "36px",
+            height: "36px",
+            boxShadow: "0 2px 12px rgba(59,130,246,0.1)",
+            cursor: "pointer",
+            transition: "left 0.22s var(--transition-fast)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+          tabIndex={0}
+        >
+          {/* Show Chevron Icon */}
+          <span style={{
+            fontSize: '20px',
+            display: 'inline-block',
+            transition: "transform 0.2s"
+          }}>
+            {sidebarOpen ? "←" : "→"}
+          </span>
+        </button>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            height: "100vh",
+            marginLeft: sidebarOpen ? 0 : 0
+          }}
+        >
           <Header onLogout={handleLogout} />
           <main className="chat-main">
             <section
@@ -515,9 +562,7 @@ function App() {
                 <div className="chat-welcome">
                   <div className="welcome-content">
                     <div className="welcome-icon">💬</div>
-                    <h2 className="welcome-title">
-                      Welcome to Knowledge Chat
-                    </h2>
+                    <h2 className="welcome-title">Welcome to Knowledge Chat</h2>
                     <p className="welcome-description">
                       Ask me anything and I'll provide answers using our
                       knowledge base and AI-powered insights.
