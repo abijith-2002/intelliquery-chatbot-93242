@@ -3,6 +3,7 @@ import Header from './components/Header';
 import ChatMessage, { LoadingMessage } from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
 import ErrorMessage from './components/ErrorMessage';
+import Sidebar from './components/Sidebar';
 import AuthPage from './components/AuthPage';
 import DashboardPage from './components/DashboardPage';
 import "./App.css";
@@ -42,7 +43,7 @@ function generateSessionId() {
 function App() {
   // --- Demo path-based routing (no react-router): only supports /dashboard and /chat/:id (as string) ---
 
-  // Auth state
+  // ========== AUTH STATE ================
   const [user, setUser] = useState(() => {
     try {
       const session = localStorage.getItem("auth_user");
@@ -52,22 +53,81 @@ function App() {
     }
   });
 
-  // Path state - track the "url" hash for demo routing
+  // ---- APP ROUTING ---------------------
   const [appPath, setAppPath] = useState(() => {
-    // Could use window.location.hash (e.g. "#/dashboard"), default to dashboard if logged in.
     const hasUser = !!localStorage.getItem("auth_user");
-    if (window.location.hash.startsWith("#/chat/")) return window.location.hash.replace("#", "");
+    if (window.location.hash.startsWith("#/chat/"))
+      return window.location.hash.replace("#", "");
     if (window.location.hash === "#/dashboard") return "/dashboard";
     return hasUser ? "/dashboard" : "/";
   });
 
-  // Demo navigation
   const navigate = (path) => {
     window.location.hash = "#" + path;
     setAppPath(path);
   };
 
-  // Simple logout logic
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // ============= CHAT SESSION STATE =============
+  // Each session: { id, title, lastActive, preview, messages }
+  const [chatSessions, setChatSessions] = useState(() => {
+    try {
+      const existing = localStorage.getItem("chat_sessions");
+      if (existing) return JSON.parse(existing);
+    } catch (e) {}
+    return [];
+  });
+
+  // For currently-active chat
+  const [activeSessionId, setActiveSessionId] = useState(() => {
+    if (window.location.hash.startsWith("#/chat/")) {
+      return window.location.hash.substring(7);
+    }
+    return "";
+  });
+
+  // Load previous chat history from backend on user login (optional: if backend offers endpoint)
+  // This is a placeholder; backend needs to provide a /chats or /history endpoint if supported.
+  useEffect(() => {
+    // Pull previous chats from API (if backend supports), otherwise load from localStorage.
+    if (!user) return;
+    let ignore = false;
+    async function fetchBackendChats() {
+      try {
+        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+        // Example: GET /chats if API supports it (skipped for now: design uses localStorage)
+        // const res = await fetch(`${API_BASE_URL}/chats`, { credentials: "include" });
+        // if (res.ok) {
+        //   const data = await res.json();
+        //   if (!ignore && Array.isArray(data)) setChatSessions(data);
+        // }
+      } catch (err) {
+        // fallback to localStorage
+      }
+    }
+    fetchBackendChats();
+    return () => { ignore = true; };
+  }, [user]);
+
+  // Save chatSessions to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem("chat_sessions", JSON.stringify(chatSessions));
+    } catch (e) {}
+  }, [chatSessions]);
+
+  // --- CHAT UI STATE -----------
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [retryableMessage, setRetryableMessage] = useState(null);
+  const chatEndRef = useRef(null);
+
+  const sessionId = useRef(activeSessionId || generateSessionId());
+
+  // =========== LOGOUT ===========
   const handleLogout = useCallback(() => {
     setUser(null);
     try {
@@ -84,40 +144,48 @@ function App() {
     setRetryableMessage(null);
     setIsLoading(false);
     sessionId.current = generateSessionId();
+    setChatSessions([]);
+    setActiveSessionId("");
     navigate("/");
   }, []);
 
-  // Authenticate callback from AuthPage
-  const handleAuth = (userObj) => {
+  // =========== LOGIN FLOW =========
+  // Auth callback and auto-open new chat on successful login
+  const handleAuth = useCallback((userObj) => {
     setUser(userObj);
     try {
       localStorage.setItem("auth_user", JSON.stringify(userObj));
     } catch (e) {}
-    navigate("/dashboard");
-  };
+    // After login: start a new chat automatically
+    const newChatId = "session-" + Math.random().toString(36).substr(2, 12) + "-" + Date.now();
+    setActiveSessionId(newChatId);
+    setMessages([]);
+    setInput("");
+    setError(null);
+    setRetryableMessage(null);
+    setIsLoading(false);
+    sessionId.current = newChatId;
+    navigate(`/chat/${newChatId}`);
+  }, []);
 
-  // --- Manage chat sessions (demo/mock for local/frontend only) ---
-  // Each session: { id, title, lastActive, preview, messages }
+  // ============ CHAT SESSION STATE MGMT ===============
+  // Switch chat: from sidebar
+  const handleSelectChatFromSidebar = useCallback((chatId) => {
+    if (activeSessionId === chatId) return;
+    const sess = chatSessions.find((c) => c.id === chatId);
+    if (sess) {
+      setActiveSessionId(chatId);
+      setMessages(sess.messages || []);
+      setInput("");
+      setError(null);
+      setRetryableMessage(null);
+      setIsLoading(false);
+      sessionId.current = chatId;
+      navigate(`/chat/${chatId}`);
+    }
+  }, [chatSessions, activeSessionId]);
 
-  const [chatSessions, setChatSessions] = useState(() => {
-    // Try to load chat sessions from localStorage
-    try {
-      const existing = localStorage.getItem("chat_sessions");
-      if (existing) return JSON.parse(existing);
-    } catch (e) {}
-    // Demo: if no chats exist, create an empty array
-    return [];
-  });
-
-  // Save chatSessions to localStorage on change
-  useEffect(() => {
-    try {
-      localStorage.setItem("chat_sessions", JSON.stringify(chatSessions));
-    } catch (e) {}
-  }, [chatSessions]);
-
-  // Helper: create new chat session, returns id and sets state
-  // We do not immediately insert a session into chatSessions until the first message is sent.
+  // Start new chat (button on sidebar or header)
   const handleStartNewChat = useCallback(() => {
     const now = Date.now();
     const newId = "session-" + Math.random().toString(36).substr(2, 12) + "-" + now;
@@ -128,44 +196,13 @@ function App() {
     setRetryableMessage(null);
     setIsLoading(false);
     sessionId.current = newId;
-    // Route to /chat/<session-id>
     navigate(`/chat/${newId}`);
-  // eslint-disable-next-line
   }, [chatSessions]);
 
-  // Helper: resume chat given id
+  // --- Backwards compat for dashboard "Resume chat" (legacy) ---
   const handleResumeChat = useCallback((chatId) => {
-    const sess = chatSessions.find((c) => c.id === chatId);
-    if (sess) {
-      setActiveSessionId(chatId);
-      setMessages(sess.messages);
-      setInput("");
-      setError(null);
-      setRetryableMessage(null);
-      setIsLoading(false);
-      sessionId.current = chatId;
-      navigate(`/chat/${chatId}`);
-    }
-    // else ignore
-  }, [chatSessions]);
-
-  // For currently-active chat
-  const [activeSessionId, setActiveSessionId] = useState(() => {
-    // If hash is #/chat/<id>, extract id
-    if (window.location.hash.startsWith("#/chat/")) {
-      return window.location.hash.substring(7);
-    }
-    return "";
-  });
-
-  // Chat UI state
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [retryableMessage, setRetryableMessage] = useState(null);
-  const chatEndRef = useRef(null);
-  const sessionId = useRef(activeSessionId || generateSessionId());
+    handleSelectChatFromSidebar(chatId);
+  }, [handleSelectChatFromSidebar]);
 
   // Whenever we switch activeSessionId, update messages for that session
   useEffect(() => {
@@ -173,24 +210,35 @@ function App() {
     const sess = chatSessions.find((c) => c.id === activeSessionId);
     setMessages(sess ? sess.messages : []);
     sessionId.current = activeSessionId;
-    // Set hash/path
     navigate(`/chat/${activeSessionId}`);
-    // eslint-disable-next-line
+  // intentionally not depending on chatSessions to avoid loop
+  // eslint-disable-next-line
   }, [activeSessionId]);
 
-  // Save messages to session in chatSessions
+  // Save messages to chatSessions, and create/update session info.
   useEffect(() => {
     if (!activeSessionId) return;
-
     setChatSessions((prev) => {
-      // If this session already exists, update it as before
       const foundIndex = prev.findIndex((c) => c.id === activeSessionId);
+      // Session title logic: first message sets title, if not present
+      function getChatTitle(msgs) {
+        // Use first user message's content, trimmed & short
+        const firstUser = msgs.find((m) => m.role === "user");
+        if (!firstUser || !firstUser.query) return "Untitled";
+        let msg = firstUser.query.trim();
+        if (msg.length > 50) msg = msg.substring(0, 50) + "…";
+        // Remove trailing punctuation and make into "Question?/something" → summary
+        if (msg.endsWith("?")) msg = msg.substring(0, msg.length - 1);
+        return msg.charAt(0).toUpperCase() + msg.slice(1);
+      }
       if (foundIndex !== -1) {
         // Remove session if it no longer has messages
         if (!messages || messages.length === 0) {
           return prev.filter((c) => c.id !== activeSessionId);
         }
-        // Update session
+        const title = prev[foundIndex].title && prev[foundIndex].title !== "Untitled"
+          ? prev[foundIndex].title
+          : getChatTitle(messages);
         return prev.map((c) =>
           c.id === activeSessionId
             ? {
@@ -207,30 +255,33 @@ function App() {
                         .reverse()
                         .find((msg) => msg.role === "user")?.query || ""
                     : "",
+                title
               }
             : c
         );
       } else {
-        // If messages is non-empty, add this as a new session
+        // Add as a new session if messages were sent
         if (messages && messages.length > 0) {
-          const firstUserMessage = messages.find((msg) => msg.role === "user");
           return [
             {
               id: activeSessionId,
-              title: "New Chat " + (prev.length + 1),
+              title: getChatTitle(messages),
               lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
-              preview: firstUserMessage ? firstUserMessage.query : "",
+              preview: messages
+                .slice()
+                .reverse()
+                .find((msg) => msg.role === "user")?.query || "",
               messages,
             },
             ...prev,
           ];
         } else {
-          // Don't create a session if no messages
+          // Don't create session if no messages yet
           return prev;
         }
       }
     });
-    // eslint-disable-next-line
+  // eslint-disable-next-line
   }, [messages, activeSessionId]);
 
   useEffect(() => {
@@ -332,8 +383,7 @@ function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  // -- Routing logic --
-  // If not logged in, show login/register page
+  // ======= ROUTING LOGIC =========
   if (!user) {
     return <AuthPage onAuth={handleAuth} />;
   }
@@ -351,91 +401,69 @@ function App() {
     );
   }
 
-  // Show chat if at "/chat/:id" and session exists, fallback to dashboard otherwise
+  // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
-    const currSession = chatSessions.find((sess) => sess.id === activeSessionId);
-    if (!currSession) {
-      // If session id doesn't exist (bad url), redirect to dashboard
-      navigate("/dashboard");
-      return null;
-    }
     return (
-      <div className="App">
-        <Header onLogout={handleLogout} />
-        <main className="chat-main">
-          <section
-            className="chat-area"
-            role="log"
-            aria-live="polite"
-            aria-label="Chat messages"
-          >
-            {messages.length === 0 && !isLoading ? (
-              <div className="chat-welcome">
-                <div className="welcome-content">
-                  <div className="welcome-icon">💬</div>
-                  <h2 className="welcome-title">
-                    Welcome to Knowledge Chat
-                  </h2>
-                  <p className="welcome-description">
-                    Ask me anything and I'll provide answers using our
-                    knowledge base and AI-powered insights.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {messages.map((message, index) => (
-                  <ChatMessage
-                    key={`${message.timestamp}-${index}`}
-                    message={message}
-                    index={index}
-                  />
-                ))}
-                {isLoading && <LoadingMessage />}
-              </>
-            )}
-            {error && (
-              <ErrorMessage
-                message={error}
-                onRetry={retryableMessage ? handleRetry : null}
-                onDismiss={handleDismissError}
-              />
-            )}
-            <div ref={chatEndRef} />
-          </section>
-        </main>
-        <ChatInput
-          value={input}
-          onChange={handleInputChange}
-          onSubmit={handleSendMessage}
-          disabled={isLoading}
-          placeholder={
-            isLoading ? "Processing your message..." : "Type your message..."
-          }
+      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+        <Sidebar
+          chats={chatSessions}
+          activeSessionId={activeSessionId}
+          onSelectChat={handleSelectChatFromSidebar}
+          onNewChat={handleStartNewChat}
         />
-        {/* Return/Back to Dashboard button */}
-        <div style={{
-          position: "fixed",
-          top: 16,
-          left: 16,
-          zIndex: 50,
-        }}>
-          <button
-            className="clear-button"
-            type="button"
-            onClick={() => navigate("/dashboard")}
-            aria-label="Back to dashboard"
-            style={{
-              background: "var(--bg-secondary)",
-              border: "1px solid var(--border-subtle)",
-              color: "var(--text-secondary)",
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 500,
-              padding: "8px 14px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.09)"
-            }}
-          >← Dashboard</button>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
+          <Header onLogout={handleLogout} />
+          <main className="chat-main">
+            <section
+              className="chat-area"
+              role="log"
+              aria-live="polite"
+              aria-label="Chat messages"
+            >
+              {messages.length === 0 && !isLoading ? (
+                <div className="chat-welcome">
+                  <div className="welcome-content">
+                    <div className="welcome-icon">💬</div>
+                    <h2 className="welcome-title">
+                      Welcome to Knowledge Chat
+                    </h2>
+                    <p className="welcome-description">
+                      Ask me anything and I'll provide answers using our
+                      knowledge base and AI-powered insights.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {messages.map((message, index) => (
+                    <ChatMessage
+                      key={`${message.timestamp}-${index}`}
+                      message={message}
+                      index={index}
+                    />
+                  ))}
+                  {isLoading && <LoadingMessage />}
+                </>
+              )}
+              {error && (
+                <ErrorMessage
+                  message={error}
+                  onRetry={retryableMessage ? handleRetry : null}
+                  onDismiss={handleDismissError}
+                />
+              )}
+              <div ref={chatEndRef} />
+            </section>
+          </main>
+          <ChatInput
+            value={input}
+            onChange={handleInputChange}
+            onSubmit={handleSendMessage}
+            disabled={isLoading}
+            placeholder={
+              isLoading ? "Processing your message..." : "Type your message..."
+            }
+          />
         </div>
       </div>
     );
@@ -447,3 +475,4 @@ function App() {
 }
 
 export default App;
+
