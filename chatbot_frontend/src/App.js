@@ -218,101 +218,28 @@ function App() {
   // Save messages to chatSessions, and create/update session info.
   useEffect(() => {
     if (!activeSessionId) return;
-
-    /**
-     * getChatTitleGemini
-     * Calls Gemini API to generate a short title for the first message.
-     * Returns a promise for the concise title string.
-     */
-    async function getChatTitleGemini(prompt) {
-      const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-      // Can be a backend endpoint (recommended) or direct Google Gemini API call.
-      // We'll call Gemini directly unless no key, then fallback to static title.
-      if (!GEMINI_API_KEY) return null;
-      try {
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + GEMINI_API_KEY;
-
-        const geminiBody = {
-          contents: [{
-            role: "user",
-            parts: [{ text: `Summarize this user message as a short, relevant chat title: ${prompt}` }]
-          }],
-          generationConfig: {
-            temperature: 0.5,
-            maxOutputTokens: 16,
-            stopSequences: [],
-            topP: 1,
-            topK: 1
-          }
-        };
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(geminiBody)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // Gemini returns: { candidates: [{content: {parts: [{text: "title"}]}}...] }
-          return (data?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
-        }
-      } catch (err) {
-        // If failure, fallback to local short version
-      }
-      return null;
-    }
-
     setChatSessions((prev) => {
       const foundIndex = prev.findIndex((c) => c.id === activeSessionId);
-      // Function to get fallback title from first user prompt, if Gemini fails or is not needed
-      function getLocalTitle(msgs) {
+      // Session title logic: first message sets title, if not present
+      function getChatTitle(msgs) {
+        // Use first user message's content, trimmed & short
         const firstUser = msgs.find((m) => m.role === "user");
         if (!firstUser || !firstUser.query) return "Untitled";
         let msg = firstUser.query.trim();
         if (msg.length > 50) msg = msg.substring(0, 50) + "…";
+        // Remove trailing punctuation and make into "Question?/something" → summary
         if (msg.endsWith("?")) msg = msg.substring(0, msg.length - 1);
         return msg.charAt(0).toUpperCase() + msg.slice(1);
       }
-
-      // Helper to update session title in-place (after Gemini returns)
-      async function updateSessionTitle(sessionIdx, prompt) {
-        const shortTitle = await getChatTitleGemini(prompt);
-        if (shortTitle && shortTitle.length > 0) {
-          setChatSessions((state) =>
-            state.map((c, idx) =>
-              idx === sessionIdx && c
-                ? {
-                    ...c,
-                    title: shortTitle,
-                  }
-                : c
-            )
-          );
-        }
-      }
-
-      // If session exists
       if (foundIndex !== -1) {
         // Remove session if it no longer has messages
         if (!messages || messages.length === 0) {
           return prev.filter((c) => c.id !== activeSessionId);
         }
-        let newTitle = prev[foundIndex].title && prev[foundIndex].title !== "Untitled"
+        const title = prev[foundIndex].title && prev[foundIndex].title !== "Untitled"
           ? prev[foundIndex].title
-          : getLocalTitle(messages);
-
-        // If the title is "Untitled" or just a trunc/first user msg, and it's the first message, generate a new title using Gemini
-        const userMsgs = Array.isArray(messages) ? messages.filter((m) => m.role === "user") : [];
-        if (
-          userMsgs.length === 1 && // Only first message triggers
-          (!prev[foundIndex].title || prev[foundIndex].title === "Untitled" || prev[foundIndex].title === getLocalTitle(messages))
-        ) {
-          // Async: call Gemini title only on first user prompt, non-blocking UI update
-          updateSessionTitle(foundIndex, userMsgs[0].query);
-        }
-
-        return prev.map((c, idx) =>
+          : getChatTitle(messages);
+        return prev.map((c) =>
           c.id === activeSessionId
             ? {
                 ...c,
@@ -328,35 +255,17 @@ function App() {
                         .reverse()
                         .find((msg) => msg.role === "user")?.query || ""
                     : "",
-                title: newTitle,
+                title
               }
             : c
         );
       } else {
         // Add as a new session if messages were sent
         if (messages && messages.length > 0) {
-          const localTitle = getLocalTitle(messages);
-          // If first message, spawn Gemini title update in-place after state commit
-          const userMsgs = Array.isArray(messages) ? messages.filter((m) => m.role === "user") : [];
-          if (userMsgs.length === 1 && userMsgs[0]?.query) {
-            // Run async Gemini title when new chat created
-            setTimeout(() => {
-              getChatTitleGemini(userMsgs[0].query).then((shortTitle) => {
-                if (shortTitle && shortTitle.length > 0) {
-                  setChatSessions((state) =>
-                    state.map((c) =>
-                      c.id === activeSessionId ? { ...c, title: shortTitle } : c
-                    )
-                  );
-                }
-              });
-            }, 100); // non-blocking update
-          }
-
           return [
             {
               id: activeSessionId,
-              title: localTitle,
+              title: getChatTitle(messages),
               lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
               preview: messages
                 .slice()
@@ -495,61 +404,14 @@ function App() {
   // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
     return (
-      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh", position: "relative" }}>
-        {/* Sidebar with hide/show */}
-        {sidebarOpen && (
-          <Sidebar
-            chats={chatSessions}
-            activeSessionId={activeSessionId}
-            onSelectChat={handleSelectChatFromSidebar}
-            onNewChat={handleStartNewChat}
-          />
-        )}
-        {/* Hide button overlay when sidebar is open, show button when hidden */}
-        {/* Position absolute at left center */}
-        <button
-          className="sidebar-toggle-btn"
-          aria-label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-          onClick={() => setSidebarOpen((prev) => !prev)}
-          style={{
-            position: 'absolute',
-            left: sidebarOpen ? 260 : 0,
-            top: 24,
-            zIndex: 300,
-            background: "var(--accent-blue)",
-            color: "var(--text-primary)",
-            border: "none",
-            borderRadius: "0 16px 16px 0",
-            width: "36px",
-            height: "36px",
-            boxShadow: "0 2px 12px rgba(59,130,246,0.1)",
-            cursor: "pointer",
-            transition: "left 0.22s var(--transition-fast)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-          tabIndex={0}
-        >
-          {/* Show Chevron Icon */}
-          <span style={{
-            fontSize: '20px',
-            display: 'inline-block',
-            transition: "transform 0.2s"
-          }}>
-            {sidebarOpen ? "←" : "→"}
-          </span>
-        </button>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            height: "100vh",
-            marginLeft: sidebarOpen ? 0 : 0
-          }}
-        >
+      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+        <Sidebar
+          chats={chatSessions}
+          activeSessionId={activeSessionId}
+          onSelectChat={handleSelectChatFromSidebar}
+          onNewChat={handleStartNewChat}
+        />
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
           <Header onLogout={handleLogout} />
           <main className="chat-main">
             <section
@@ -562,7 +424,9 @@ function App() {
                 <div className="chat-welcome">
                   <div className="welcome-content">
                     <div className="welcome-icon">💬</div>
-                    <h2 className="welcome-title">Welcome to Knowledge Chat</h2>
+                    <h2 className="welcome-title">
+                      Welcome to Knowledge Chat
+                    </h2>
                     <p className="welcome-description">
                       Ask me anything and I'll provide answers using our
                       knowledge base and AI-powered insights.

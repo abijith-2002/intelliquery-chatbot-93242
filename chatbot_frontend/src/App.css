@@ -317,30 +317,3 @@ body {
     height: auto;
   }
 }
-
-/* Sidebar Toggle Button Style */
-.sidebar-toggle-btn {
-  background: var(--accent-blue);
-  color: var(--text-primary);
-  border: none;
-  border-radius: 0 16px 16px 0;
-  width: 36px;
-  height: 36px;
-  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.07);
-  cursor: pointer;
-  transition: left 0.22s var(--transition-fast), background var(--transition-normal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  font-size: 20px;
-}
-
-.sidebar-toggle-btn:hover,
-.sidebar-toggle-btn:focus {
-  background: var(--accent-blue-hover);
-}
-
-.sidebar-toggle-btn:active {
-  background: var(--accent-blue-active);
-}
