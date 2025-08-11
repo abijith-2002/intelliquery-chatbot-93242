@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { generateChatTitle } from "./utils/titleGenerator";
 import Header from './components/Header';
 import ChatMessage, { LoadingMessage } from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -197,17 +196,8 @@ function App() {
     setRetryableMessage(null);
     setIsLoading(false);
     sessionId.current = newId;
-
-    // Initialize new chat session with default title
-    setChatSessions(prev => [{
-      id: newId,
-      title: "New Chat",
-      lastActive: now,
-      messages: [],
-    }, ...prev]);
-
     navigate(`/chat/${newId}`);
-  }, []);
+  }, [chatSessions]);
 
   // --- Backwards compat for dashboard "Resume chat" (legacy) ---
   const handleResumeChat = useCallback((chatId) => {
@@ -230,69 +220,66 @@ function App() {
     if (!activeSessionId) return;
     setChatSessions((prev) => {
       const foundIndex = prev.findIndex((c) => c.id === activeSessionId);
-      
-      // Asynchronously generate title using Gemini if this is the first message
-      async function updateTitleWithGemini(msgs, currentTitle) {
-        if (!msgs || msgs.length === 0) return "New Chat";
-        if (currentTitle && currentTitle !== "New Chat" && currentTitle !== "Untitled") return currentTitle;
-        
+      // Session title logic: first message sets title, if not present
+      function getChatTitle(msgs) {
+        // Use first user message's content, trimmed & short
         const firstUser = msgs.find((m) => m.role === "user");
         if (!firstUser || !firstUser.query) return "Untitled";
-        
-        // Generate title using Gemini
-        const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-        if (!apiKey) return firstUser.query.substring(0, 50);
-        
-        const title = await generateChatTitle(firstUser.query, apiKey);
-        
-        // Update chat sessions with new title
-        setChatSessions(prev => prev.map(c => 
-          c.id === activeSessionId ? { ...c, title } : c
-        ));
-        
-        return title;
+        let msg = firstUser.query.trim();
+        if (msg.length > 50) msg = msg.substring(0, 50) + "…";
+        // Remove trailing punctuation and make into "Question?/something" → summary
+        if (msg.endsWith("?")) msg = msg.substring(0, msg.length - 1);
+        return msg.charAt(0).toUpperCase() + msg.slice(1);
       }
       if (foundIndex !== -1) {
         // Remove session if it no longer has messages
         if (!messages || messages.length === 0) {
           return prev.filter((c) => c.id !== activeSessionId);
         }
-
-        const session = prev[foundIndex];
-        // Trigger async title update
-        updateTitleWithGemini(messages, session.title);
-        
+        const title = prev[foundIndex].title && prev[foundIndex].title !== "Untitled"
+          ? prev[foundIndex].title
+          : getChatTitle(messages);
         return prev.map((c) =>
           c.id === activeSessionId
             ? {
                 ...c,
                 messages,
-                lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
-                preview: messages
-                  .slice()
-                  .reverse()
-                  .find((msg) => msg.role === "user")?.query || "",
+                lastActive:
+                  messages && messages.length
+                    ? messages[messages.length - 1].timestamp
+                    : c.lastActive,
+                preview:
+                  messages && messages.length
+                    ? messages
+                        .slice()
+                        .reverse()
+                        .find((msg) => msg.role === "user")?.query || ""
+                    : "",
+                title
               }
             : c
         );
+      } else {
+        // Add as a new session if messages were sent
+        if (messages && messages.length > 0) {
+          return [
+            {
+              id: activeSessionId,
+              title: getChatTitle(messages),
+              lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
+              preview: messages
+                .slice()
+                .reverse()
+                .find((msg) => msg.role === "user")?.query || "",
+              messages,
+            },
+            ...prev,
+          ];
+        } else {
+          // Don't create session if no messages yet
+          return prev;
+        }
       }
-      // Add as a new session if messages were sent
-      if (messages && messages.length > 0) {
-        const newSession = {
-          id: activeSessionId,
-          title: "New Chat", // Will be updated async by updateTitleWithGemini
-          lastActive: messages[messages.length - 1]?.timestamp || Date.now(),
-          preview: messages
-            .slice()
-            .reverse()
-            .find((msg) => msg.role === "user")?.query || "",
-          messages,
-        };
-        // Trigger async title update
-        updateTitleWithGemini(messages, null);
-        return [newSession, ...prev];
-      }
-      return prev;
     });
   // eslint-disable-next-line
   }, [messages, activeSessionId]);
