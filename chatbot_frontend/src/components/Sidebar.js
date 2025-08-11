@@ -50,6 +50,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat }) {
             aria-selected={chat.id === activeSessionId}
             role="option"
           >
+            {/* Chat name font size is now slightly reduced for modern look */}
             <span className="sidebar-list-title">{chat.title || "Untitled"}</span>
             {/* Remove preview: Only show the chat title in the sidebar */}
           </li>
