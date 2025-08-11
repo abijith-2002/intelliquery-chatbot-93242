@@ -2,21 +2,14 @@
 .chat-header {
   grid-area: header;
   height: 60px;
-  min-height: 60px;
-  max-height: 60px;
   background: var(--bg-primary);
   display: flex;
-  flex: 0 0 60px;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-6); /* 0 24px as per design */
   border-bottom: 1px solid var(--border-subtle);
   position: relative;
   z-index: 10;
-  box-sizing: border-box;
-  /* Prevent shrinking or growing: */
-  flex-shrink: 0;
-  flex-grow: 0;
 }
 
 .header-brand {

@@ -109,15 +109,6 @@ body {
   height: 100vh;
   background: var(--bg-primary);
   font-family: var(--font-family-primary);
-  min-height: 100vh;
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .App {
-    grid-template-rows: 60px 1fr;
-    min-height: 100vh;
-  }
 }
 
 /* Main Content Area */
