@@ -299,6 +299,20 @@ function App() {
   }, []);
 
   // A chat always belongs to the sessionId (active chat)
+  const CHAT_TITLE_ENDPOINT = `${API_BASE_URL}/chat/title`;
+
+  /**
+   * Returns true if the current messages array is empty—i.e., this is the first user message in a new chat.
+   */
+  function isFirstMessageOfNewChat() {
+    return Array.isArray(messages) && messages.length === 0;
+  }
+
+  // PUBLIC_INTERFACE
+  /**
+   * Handles sending a message (user hit Enter or clicked send)
+   * If this is the first message in a new chat, also send to title endpoint.
+   */
   const handleSendMessage = useCallback(
     async (e) => {
       e.preventDefault();
@@ -309,12 +323,52 @@ function App() {
         query: trimmedInput,
         timestamp: Date.now(),
       };
+      let firstMsg = false;
+      if (isFirstMessageOfNewChat()) firstMsg = true;
       setMessages((prevMessages) => [...prevMessages, userMessage]);
       setInput("");
       setIsLoading(true);
       setError(null);
       setRetryableMessage(trimmedInput);
+
+      // If this is the first message of a new chat, fetch the title then proceed
+      let generatedTitle = null;
+
       try {
+        if (firstMsg) {
+          // Call /chat/title with { prompt }
+          const titleRes = await fetch(CHAT_TITLE_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ prompt: trimmedInput }),
+          });
+          // On error, fallback to default
+          if (titleRes.ok) {
+            // The endpoint returns a JSON body that's just a string
+            // e.g. "Project Launch Timeline"
+            // Try to parse as string:
+            const contentType = titleRes.headers.get("Content-Type") || "";
+            if (contentType.includes("application/json")) {
+              const titleString = await titleRes.json();
+              // Sometimes may return e.g. { detail: ... }
+              if (typeof titleString === "string" && titleString.length > 0) {
+                generatedTitle = titleString;
+              }
+            } else {
+              const text = await titleRes.text();
+              if (text.trim().length > 0) generatedTitle = text.trim();
+            }
+            if (!generatedTitle || generatedTitle.length === 0) {
+              generatedTitle = trimmedInput.length > 50 ? trimmedInput.substring(0, 50) + "…" : trimmedInput;
+            }
+          } else {
+            generatedTitle = trimmedInput.length > 50 ? trimmedInput.substring(0, 50) + "…" : trimmedInput;
+          }
+        }
+
         const response = await fetch(CHAT_ENDPOINT, {
           method: "POST",
           headers: {
@@ -339,8 +393,35 @@ function App() {
           gemini_answer: data.gemini_answer || "No Gemini response available",
           timestamp: Date.now(),
         };
+
         setMessages((prevMessages) => [...prevMessages, assistantMessage]);
         setRetryableMessage(null);
+
+        // If a title was generated, update chatSessions (and sync to localStorage)
+        if (firstMsg && generatedTitle) {
+          setChatSessions((prev) => {
+            const idx = prev.findIndex(s => s.id === activeSessionId);
+            if (idx !== -1) {
+              // Update the session's title but preserve other content
+              return prev.map((s, i) =>
+                i === idx ? { ...s, title: generatedTitle } : s
+              );
+            } else {
+              // If not in sessions, push a new one (should only rarely happen)
+              return [
+                {
+                  id: activeSessionId,
+                  title: generatedTitle,
+                  lastActive: Date.now(),
+                  preview: trimmedInput,
+                  messages: [userMessage, assistantMessage],
+                },
+                ...prev,
+              ];
+            }
+          });
+        }
+
       } catch (err) {
         setError(err.message || "Failed to get response. Please try again.");
         setMessages((prevMessages) => prevMessages.slice(0, -1));
@@ -349,7 +430,8 @@ function App() {
         setIsLoading(false);
       }
     },
-    [input, isLoading]
+    // Note: added chatSessions (must be stable due to setChatSessions use)
+    [input, isLoading, messages, activeSessionId, chatSessions]
   );
 
   const handleRetry = useCallback(() => {

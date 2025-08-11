@@ -51,13 +51,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat }) {
             role="option"
           >
             <span className="sidebar-list-title">{chat.title || "Untitled"}</span>
-            {chat.preview && (
-              <span className="sidebar-list-preview">
-                {chat.preview.length > 36
-                  ? chat.preview.substring(0, 36) + "…"
-                  : chat.preview}
-              </span>
-            )}
+            {/* Remove preview: Only show the chat title in the sidebar */}
           </li>
         ))}
       </ul>
