@@ -486,16 +486,25 @@ function App() {
   // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
     return (
-      <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+      <div className="App" style={{ height: "100vh", width: "100vw", minWidth: 0 }}>
         <Sidebar
           chats={chatSessions}
           activeSessionId={activeSessionId}
           onSelectChat={handleSelectChatFromSidebar}
           onNewChat={handleStartNewChat}
         />
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
+        {/* App main content area, enforces column structure and header contract */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: "100vh",
+          minWidth: 0,
+          height: "100vh",
+          maxHeight: "100vh"
+        }}>
           <Header onLogout={handleLogout} />
-          <main className="chat-main">
+          <main className="chat-main" style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
             <section
               className="chat-area"
               role="log"
