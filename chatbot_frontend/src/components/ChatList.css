@@ -4,76 +4,44 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-2);
 }
 
 .chatlist-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   background: var(--bg-tertiary);
   border-radius: 8px;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border-subtle);
-  transition: background var(--transition-normal);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  user-select: none;
 }
 
 .chatlist-item:hover {
   background: var(--bg-secondary);
+  transform: translateY(-1px);
 }
 
-.chatlist-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.chatlist-item:active {
+  transform: translateY(0);
+}
+
+.chatlist-item:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
 }
 
 .chatlist-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.chatlist-meta {
-  font-size: 13px;
-  color: var(--text-muted);
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-}
-
-.chatlist-preview {
-  color: var(--text-secondary);
-  font-style: italic;
-}
-
-.chatlist-resume-btn {
-  background: var(--accent-blue);
-  color: var(--text-primary);
-  border: none;
-  border-radius: 6px;
-  padding: 8px 18px;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.chatlist-resume-btn:hover,
-.chatlist-resume-btn:focus {
-  background: var(--accent-blue-hover);
-  outline: none;
-}
-
-.chatlist-resume-btn:active {
-  background: var(--accent-blue-active);
+  color: var(--text-primary);
 }
 
 .chatlist-empty {
-  font-size: 16px;
+  font-size: 14px;
   font-style: italic;
   color: var(--text-muted);
-  padding: var(--space-6) 0;
+  padding: var(--space-4) 0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -81,14 +49,15 @@
 }
 
 .chatlist-empty-icon {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 @media (max-width: 600px) {
   .chatlist-item {
-    flex-direction: column;
-    align-items: stretch;
-    padding: var(--space-3);
-    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .chatlist-title {
+    font-size: 13px;
   }
 }
