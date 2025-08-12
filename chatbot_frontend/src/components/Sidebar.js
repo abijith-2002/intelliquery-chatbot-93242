@@ -1,5 +1,6 @@
 import React from "react";
 import "./Sidebar.css";
+import MinimalChatIcon from "./icons/MinimalChatIcon";
 
 /**
  * Sidebar - displays chat sessions, allows switching and starting new chat
@@ -36,7 +37,12 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
       aria-label="Chat History Sidebar"
       aria-hidden={!isOpen}
     >
-      <div className="sidebar-header">💬 &nbsp; Chats</div>
+      <div className="sidebar-header">
+        <span className="sidebar-header-icon" aria-hidden="true">
+          <MinimalChatIcon size={18} title="Chats" />
+        </span>
+        <span className="sidebar-header-title">Chats</span>
+      </div>
       <button
         className="sidebar-new-chat-btn"
         type="button"
