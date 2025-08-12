@@ -46,10 +46,14 @@ function ChatMessage({ message, index }) {
           {/* AI response with reduced font size */}
           <div className="response-content ai-response-font-size">
             <ReactMarkdown
+              // NOTE: react-markdown@8 is compatible with remark-gfm@3 (pinned in package.json).
+              // Using remark-gfm@4 with v8 can cause runtime errors like "Cannot read properties of undefined (reading 'inTable')".
               // GitHub-flavored Markdown for tables, strikethrough, task lists, etc.
               remarkPlugins={[remarkGfm]}
-              // Highlight.js via rehype-highlight with auto-detection and missing-language tolerance
-              rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}
+              // Highlight.js via rehype-highlight with missing-language tolerance
+              rehypePlugins={[[rehypeHighlight, { ignoreMissing: true }]]}
+              // Do not render raw HTML for safety
+              skipHtml={true}
               // Make links open in a new tab securely
               components={{
                 a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,

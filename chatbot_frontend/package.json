@@ -9,7 +9,7 @@
     "react-scripts": "^5.0.1",
     "highlight.js": "^11.9.0",
     "rehype-highlight": "^6.0.0",
-    "remark-gfm": "^4.0.0"
+    "remark-gfm": "^3.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

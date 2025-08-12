@@ -199,6 +199,13 @@ Content-Type: application/json
 
 ### Common Issues
 
+- Markdown rendering error: "Cannot read properties of undefined (reading 'inTable')"
+  - Cause: Version mismatch between react-markdown and remark-gfm. react-markdown v8.x expects remark-gfm v3.x. Using remark-gfm v4 with v8 can trigger this runtime error when rendering code blocks or GFM tables.
+  - Fix: Ensure package.json uses:
+    - react-markdown: ^8.0.7
+    - remark-gfm: ^3.0.1
+  - Alternative: If you upgrade to react-markdown v9+, you can use remark-gfm v4+.
+
 **Build Errors**
 - Ensure Node.js 16+ is installed
 - Clear node_modules and reinstall: `rm -rf node_modules package-lock.json && npm install`
