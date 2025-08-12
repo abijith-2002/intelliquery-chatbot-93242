@@ -98,7 +98,7 @@
   min-height: 44px;
   border-radius: 16px; /* align with .sidebar-list-item shape */
   border: none;
-  background: var(--md-color-selected-bg, #1f2836); /* dark flat background */
+  background: transparent; /* match unselected chat history item background */
   color: var(--md-color-on-surface);
   font-size: 14px;
   font-weight: 600;
