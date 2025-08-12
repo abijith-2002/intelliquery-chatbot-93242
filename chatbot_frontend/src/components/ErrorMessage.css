@@ -55,7 +55,7 @@
 .error-button {
   background: var(--accent-blue);
   color: var(--text-primary);
-  border: 1px solid var(--accent-blue);
+  border: none;
   border-radius: 6px;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
@@ -67,12 +67,10 @@
 
 .error-button:hover {
   background: var(--accent-blue-hover);
-  border-color: var(--accent-blue-hover);
 }
 
 .error-button:active {
   background: var(--accent-blue-active);
-  border-color: var(--accent-blue-active);
 }
 
 .retry-button {
@@ -90,7 +88,7 @@
   font-size: 14px;
   background: transparent;
   color: var(--text-muted);
-  border: 1px solid var(--border-color);
+  border: none;
 }
 
 .dismiss-button:hover {

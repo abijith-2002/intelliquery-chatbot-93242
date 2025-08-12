@@ -43,7 +43,7 @@
 .sidebar-toggle {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 6px;
   padding: var(--space-2);
   font-size: var(--font-size-base);
@@ -59,7 +59,6 @@
 
 .sidebar-toggle:hover {
   background: var(--overlay-light);
-  border-color: var(--accent-blue);
 }
 
 .sidebar-toggle:active {
@@ -115,7 +114,7 @@
 .logout-button {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  border: none;
   border-radius: 6px;
   padding: var(--space-2) var(--space-3);
   font-size: var(--font-size-sm);
@@ -130,7 +129,6 @@
 
 .logout-button:hover {
   background: var(--overlay-light);
-  border-color: #ef4444;
   color: #ef4444;
 }
 

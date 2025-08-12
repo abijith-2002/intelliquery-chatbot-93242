@@ -77,7 +77,7 @@
   width: calc(100% - 32px);
   height: 44px;
   border-radius: 22px;
-  border: 1px solid rgba(25,118,210,0.28);
+  border: none;
   background: var(--md-color-primary-container);
   color: var(--md-color-on-primary-container);
   font-size: 15px;
