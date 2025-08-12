@@ -2,23 +2,18 @@ import React from "react";
 import "./Sidebar.css";
 
 /**
- * Sidebar - displays chat sessions, allows switching and starting new chat.
- * Renders nothing when there are no previous chats (no placeholder or extra UI).
- * 
+ * Sidebar - displays chat sessions, allows switching and starting new chat
  * @param {Object} props
  * @param {Array<{id: string, title: string, preview: string, lastActive: number, messages: Array}>} props.chats
  * @param {string} props.activeSessionId
  * @param {Function} props.onSelectChat - handler(sessionId)
  * @param {Function} props.onNewChat - handler() to start new chat
  * @param {boolean} [props.isOpen=true] - Whether the sidebar is visible (animated collapse when false)
- * @returns {JSX.Element|null}
+ * @returns {JSX.Element}
  */
 // PUBLIC_INTERFACE
 function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = true }) {
-  /** This is a public function: Sidebar renders the chat list and new chat action; collapsible via isOpen.
-   *  When there are no previous chats, this component renders nothing (null).
-   */
-
+  /** This is a public function: Sidebar renders the chat list and new chat action; collapsible via isOpen. */
   // Sort by last active desc and only include chats with messages
   const sortedChats = Array.isArray(chats)
     ? chats
@@ -26,11 +21,6 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
         .slice()
         .sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0))
     : [];
-
-  // If there are no previous chats, render nothing (no placeholder or extra UI)
-  if (sortedChats.length === 0) {
-    return null;
-  }
 
   // Keyboard activation for accessibility (Enter/Space)
   const handleItemKeyDown = (e, chatId) => {
@@ -56,6 +46,12 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
         + New Chat
       </button>
       <ul className="sidebar-list" role="listbox" aria-orientation="vertical">
+        {sortedChats.length === 0 && (
+          <div className="chatlist-empty" style={{ margin: "30px 0" }}>
+            <span className="chatlist-empty-icon">🤖</span>
+            <span>No past chats yet.</span>
+          </div>
+        )}
         {sortedChats.map((chat) => (
           <li
             key={chat.id}
