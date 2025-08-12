@@ -6,6 +6,49 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 import './ChatMessage.css';
 
+/**
+ * Normalize Markdown to ensure a newline after any horizontal rule line '---'.
+ * Skips lines inside fenced code blocks (``` or ~~~).
+ * This helps maintain consistent spacing when the AI outputs a horizontal rule.
+ *
+ * @param {string} md - Markdown content
+ * @returns {string} Normalized markdown with newline after '---' lines.
+ */
+function ensureNewlineAfterHorizontalRule(md = '') {
+  if (typeof md !== 'string' || md.length === 0) return md;
+
+  const lines = md.replace(/\r\n/g, '\n').split('\n');
+  let inCode = false;
+
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Toggle code block state on encountering a fence (``` or ~~~)
+    const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
+    if (fenceMatch) {
+      inCode = !inCode;
+      out.push(line);
+      continue;
+    }
+
+    // Only process '---' outside of code blocks
+    if (!inCode && line.trim() === '---') {
+      out.push('---');
+      const next = lines[i + 1];
+      // Ensure a blank line follows if there isn't one already or if end of file
+      if (i + 1 >= lines.length || (next && next.trim() !== '')) {
+        out.push('');
+      }
+      continue;
+    }
+
+    out.push(line);
+  }
+
+  return out.join('\n');
+}
+
 // PUBLIC_INTERFACE
 /**
  * Individual chat message component
@@ -38,7 +81,9 @@ function ChatMessage({ message, index }) {
   }
 
   if (isAssistant) {
-    const content = typeof message.gemini_answer === 'string' ? message.gemini_answer : '';
+    const rawContent = typeof message.gemini_answer === 'string' ? message.gemini_answer : '';
+    // Ensure newline after any horizontal rule lines for consistent spacing in AI responses
+    const content = ensureNewlineAfterHorizontalRule(rawContent);
 
     return (
       <div className="chat-message chat-assistant-direct" data-message-id={index}>
