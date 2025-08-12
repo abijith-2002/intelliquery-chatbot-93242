@@ -1,4 +1,9 @@
 /* Chat Input Component - Absolutely Positioned Input Only */
+:root {
+  /* Max height for chat textarea before vertical scroll appears */
+  --chat-input-max-height: 200px;
+}
+
 .chat-textarea {
   position: fixed;
   bottom: var(--space-4); /* 16px from bottom */
@@ -6,7 +11,12 @@
   transform: translateX(-50%); /* Center horizontally */
   width: calc(100% - var(--space-12)); /* Full width minus padding */
   max-width: 600px; /* Reasonable max-width for centering */
-  height: 48px; /* Maintain design height */
+
+  /* Auto-resize: start from a comfortable minimum; JS sets inline height dynamically */
+  min-height: 48px;
+  max-height: var(--chat-input-max-height);
+  height: auto;
+
   border-radius: 24px; /* Full pill shape border radius */
   border: 2px solid var(--border-color); /* Stronger border for prominence */
   background: #232935; /* Opaque dark -- provides sharp contrast, no opacity */
@@ -18,39 +28,38 @@
   font-family: var(--font-family-primary);
   color: var(--text-primary);
   outline: none;
-  resize: none;
+  resize: none; /* resizing handled programmatically */
   line-height: 1.5; /* Normal line height for better text rendering */
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
   text-align: left; /* Left-align all text including placeholder */
   z-index: 100; /* Ensure it stays on top */
 
-  /* Remove all scrollbars */
-  overflow: hidden; /* Hide any overflow content */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  /* Enable vertical scrolling only when height hits max (JS toggles overflowY) */
+  overflow-x: hidden;
+  overflow-y: hidden;
 
-  /* Prevent text wrapping and ensure single line behavior */
-  white-space: nowrap; /* Prevent text wrapping */
-  word-wrap: normal; /* Disable word wrapping */
-  overflow-wrap: normal; /* Disable overflow wrapping */
+  /* Allow multiline wrapping and preserve newlines */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   /* Visual "pop" for modern look - optional soft shadow */
   box-shadow: 0 2px 18px 0 rgba(0,0,0,0.20);
 }
 
-/* Hide scrollbars in WebKit browsers */
+/* Show scrollbars when content exceeds max height (overflowY toggled to auto by JS) */
 .chat-textarea::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  width: 6px;
 }
-
 .chat-textarea::-webkit-scrollbar-track {
-  display: none;
+  background: transparent;
 }
-
 .chat-textarea::-webkit-scrollbar-thumb {
-  display: none;
+  background: var(--border-color);
+  border-radius: 3px;
+}
+.chat-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .chat-textarea::placeholder {
@@ -68,10 +77,7 @@
   Remove double border on focus by using only border-color and box-shadow for "focus" state.
   Remove outline from :focus and :focus-visible. Only one focus indicator is used: 
   border-color for direct focus and a soft box-shadow for extra accessibility pop.
-
-  We remove outline from :focus and :focus-visible (outline: none;), and style via border and box-shadow only.
 */
-
 .chat-textarea:focus,
 .chat-textarea:focus-visible {
   outline: none;
@@ -79,8 +85,6 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.10); /* Single shadow for accessibility */
   text-align: left;
 }
-
-/* Remove the separate :focus-visible style with outline, rely on border-color + box-shadow instead */
 
 /* Keep left alignment after text input */
 .chat-textarea:not(:placeholder-shown) {
@@ -100,7 +104,7 @@
     width: calc(100% - var(--space-8)); /* Reduce padding on mobile */
     bottom: var(--space-3); /* Slightly closer to bottom on mobile */
     font-size: 16px; /* Prevent zoom on iOS */
-    height: 44px;
+    min-height: 44px;
     border-radius: 22px; /* Maintain pill shape on mobile */
     padding: 10px var(--space-4); /* Adjusted vertical padding for mobile centering */
     background: #232935; /* Re-apply full opacity on mobile, no alpha */
