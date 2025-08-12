@@ -205,7 +205,8 @@
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.88em;
   color: var(--text-primary);
-  background: rgba(255,255,255,0.06);
+  /* Use a variable with fallback so it's consistent in dark mode and themeable */
+  background: var(--code-inline-bg, rgba(255, 255, 255, 0.06));
   padding: 0.1em 0.35em;
   border-radius: 0.35em;
   border: 1px solid var(--border-subtle);
@@ -216,11 +217,39 @@
   position: relative;
   margin: 12px 0;
   padding: 12px 14px;
-  background: var(--bg-tertiary);
+  /* Consistent dark background for code blocks (works in dark mode; remains readable in light too) */
+  background: var(--code-block-bg, #111827); /* slate-900 default */
+  color: var(--text-primary);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
-  overflow: auto;         /* horizontal scroll for long lines */
+
+  /* Horizontal scrolling only, to avoid viewport overflow from long lines */
+  overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+
+  /* Ensure the block never exceeds the container width */
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+
+  /* Improve code readability and density */
+  tab-size: 2;
+}
+
+/* Styled scrollbars for the code block (subtle, matching theme) */
+.response-content .code-block::-webkit-scrollbar {
+  height: 6px;
+}
+.response-content .code-block::-webkit-scrollbar-track {
+  background: transparent;
+}
+.response-content .code-block::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+.response-content .code-block::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 /* Allow highlight.js styles to color tokens while we own the container background */
@@ -230,8 +259,15 @@
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.9em;
   line-height: 1.6;
-  display: block;
-  white-space: pre;        /* preserve code formatting */
+
+  /* Keep layout stable and enable smooth horizontal scrolling */
+  display: inline-block;
+  min-width: 100%;
+
+  /* Preserve formatting and prevent wrapping to avoid overflow; scroll instead */
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* Tables, lists, blockquotes basic spacing for Markdown */
@@ -307,6 +343,10 @@
   .response-content .code-block {
     padding: 10px 12px;
     border-radius: 8px;
+
+    /* Keep mobile-friendly sizing without overflow */
+    max-width: 100%;
+    width: 100%;
   }
 }
 
