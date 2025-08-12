@@ -21,11 +21,6 @@
   --md-color-on-surface-variant: var(--text-secondary, #c2c8d0);
   --md-color-outline: var(--border-subtle, rgba(255,255,255,0.08));
 
-  /* Darker backgrounds for chat history items to improve distinction and legibility */
-  --sidebar-item-bg: #202938;
-  --sidebar-item-bg-hover: #1b2230;
-  --sidebar-item-bg-selected: #17202c;
-
   display: flex;
   flex-direction: column;
   background: var(--md-color-surface);
@@ -145,8 +140,8 @@
   gap: 10px;
   padding: 12px 14px;
   margin: 2px 8px;
-  background: var(--sidebar-item-bg);
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   width: calc(100% - 16px);
   cursor: pointer;
   color: var(--md-color-on-surface);
@@ -158,7 +153,9 @@
   transition:
     background var(--transition-normal),
     color var(--transition-normal),
-    transform var(--transition-fast);
+    border-color var(--transition-normal),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
   min-height: 44px;
 }
 
@@ -187,18 +184,20 @@
 }
 
 .sidebar-list-item:hover {
-  background: var(--sidebar-item-bg-hover);
+  background: var(--md-color-surface-container);
+  border-color: var(--md-color-outline);
 }
 
 .sidebar-list-item:focus-visible {
-  outline: 2px solid rgba(25, 118, 210, 0.55);
-  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.35);
 }
 
 /* Selected destination - tonal container look */
 .sidebar-list-item.selected {
-  background: var(--sidebar-item-bg-selected);
-  color: var(--md-color-on-surface);
+  background: var(--md-color-primary-container);
+  color: var(--md-color-on-primary-container);
+  border-color: rgba(25,118,210,0.32);
+  box-shadow: var(--elev-2);
 }
 
 /* Title text inside item */
