@@ -144,61 +144,11 @@ export function LoadingMessage() {
     <div className="chat-message chat-assistant-direct loading-message">
       <div className="assistant-content-direct">
         <div className="loading-content">
-          {/* Animated cat loader */}
-          <div className="cat-loader" role="img" aria-label="Loading cat animation">
-            <svg
-              className="cat-svg"
-              viewBox="0 0 120 60"
-              width="120"
-              height="60"
-              aria-hidden="true"
-              focusable="false"
-            >
-              {/* Group animation slight bob up and down */}
-              <g className="cat-bob">
-                {/* Head */}
-                <g className="cat-head" transform="translate(42,16)">
-                  <circle cx="18" cy="18" r="12" className="cat-stroke" fill="none" />
-                  {/* Ears */}
-                  <path d="M9 10 L13 2 L17 10" className="cat-stroke" fill="none" />
-                  <path d="M27 10 L31 2 L35 10" className="cat-stroke" fill="none" />
-                  {/* Eyes */}
-                  <ellipse cx="14" cy="19" rx="1.8" ry="2.2" className="cat-eye" />
-                  <ellipse cx="22" cy="19" rx="1.8" ry="2.2" className="cat-eye" />
-                  {/* Nose */}
-                  <circle cx="18" cy="22" r="1" className="cat-accent" />
-                  {/* Whiskers */}
-                  <path d="M6 22 H14" className="cat-stroke" />
-                  <path d="M22 22 H30" className="cat-stroke" />
-                </g>
-
-                {/* Body line (desk edge) */}
-                <path d="M12 44 H108" className="cat-stroke subtle" />
-
-                {/* Paws (typing) */}
-                <g className="cat-paws">
-                  <circle cx="50" cy="44" r="3.2" className="cat-paw cat-paw-left" />
-                  <circle cx="66" cy="44" r="3.2" className="cat-paw cat-paw-right" />
-                </g>
-
-                {/* Tail (wag) */}
-                <path
-                  className="cat-tail"
-                  d="M86 40 C 95 34, 103 46, 112 40"
-                  fill="none"
-                />
-              </g>
-            </svg>
-          </div>
-
-          {/* Keep existing dots to complement the cat and preserve minimal footprint */}
           <div className="loading-dots">
             <span></span>
             <span></span>
             <span></span>
           </div>
-
-          {/* Preserve text for accessibility and tests */}
           <span className="loading-text">Thinking...</span>
         </div>
       </div>
