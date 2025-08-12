@@ -199,6 +199,62 @@
   font-weight: var(--font-weight-normal);
 }
 
+/* Markdown and Code Rendering */
+/* Inline code (scoped to response content to match chat theme) */
+.response-content .inline-code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.88em;
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 0.35em;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Fenced code block container */
+.response-content .code-block {
+  position: relative;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: auto;         /* horizontal scroll for long lines */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Allow highlight.js styles to color tokens while we own the container background */
+.response-content .code-block > code.hljs {
+  background: transparent; /* use container bg */
+  color: var(--text-primary);
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.6;
+  display: block;
+  white-space: pre;        /* preserve code formatting */
+}
+
+/* Tables, lists, blockquotes basic spacing for Markdown */
+.response-content p,
+.response-content ul,
+.response-content ol {
+  margin: 0.5em 0;
+}
+
+.response-content ul,
+.response-content ol {
+  padding-left: 1.2em;
+}
+
+.response-content blockquote {
+  margin: 0.8em 0;
+  padding-left: 0.9em;
+  border-left: 3px solid var(--accent-blue);
+  color: var(--text-secondary);
+  background: var(--overlay-light);
+  border-radius: 6px;
+}
+
 /* Animations */
 @keyframes slideInMessage {
   from {
@@ -247,6 +303,11 @@
   .chat-assistant-direct .response-content {
     padding: var(--space-1) 0;
   }
+
+  .response-content .code-block {
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -283,6 +344,10 @@
   
   .rag-content {
     border-left-width: 3px;
+  }
+
+  .response-content .code-block {
+    border-width: 2px;
   }
 }
 
