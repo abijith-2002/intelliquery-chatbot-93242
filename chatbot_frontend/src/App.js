@@ -492,9 +492,14 @@ function App() {
           activeSessionId={activeSessionId}
           onSelectChat={handleSelectChatFromSidebar}
           onNewChat={handleStartNewChat}
+          isOpen={sidebarOpen}
         />
         <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
-          <Header onLogout={handleLogout} />
+          <Header
+            onLogout={handleLogout}
+            onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+            isSidebarOpen={sidebarOpen}
+          />
           <main className="chat-main">
             <section
               className="chat-area"

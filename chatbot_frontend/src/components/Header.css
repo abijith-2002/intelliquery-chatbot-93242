@@ -39,17 +39,17 @@
   line-height: var(--line-height-tight);
 }
 
-.theme-toggle {
+/* Minimal sidebar toggle button */
+.sidebar-toggle {
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: var(--space-2);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all var(--transition-normal);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -57,13 +57,22 @@
   font-family: var(--font-family-primary);
 }
 
-.theme-toggle:hover {
+.sidebar-toggle:hover {
   background: var(--overlay-light);
   border-color: var(--accent-blue);
 }
 
-.theme-toggle:active {
+.sidebar-toggle:active {
   background: var(--overlay-medium);
+}
+
+/* Icon transition feel */
+.sidebar-toggle svg {
+  transition: transform var(--transition-slow), opacity var(--transition-normal), color var(--transition-normal);
+}
+
+.sidebar-toggle.open svg {
+  transform: translateX(-1px);
 }
 
 .theme-icon {
@@ -91,7 +100,7 @@
     font-size: 16px;
   }
   
-  .theme-toggle {
+  .sidebar-toggle {
     width: 32px;
     height: 32px;
     padding: var(--space-1);
@@ -139,14 +148,16 @@
 }
 
 /* Focus states for accessibility */
-.logout-button:focus-visible {
+.logout-button:focus-visible,
+.sidebar-toggle:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .logout-button {
+  .logout-button,
+  .sidebar-toggle {
     border-width: 2px;
   }
 }
