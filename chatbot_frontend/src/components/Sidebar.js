@@ -22,6 +22,14 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
         .sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0))
     : [];
 
+  // Keyboard activation for accessibility (Enter/Space)
+  const handleItemKeyDown = (e, chatId) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelectChat(chatId);
+    }
+  };
+
   return (
     <nav
       className={`sidebar-container ${isOpen ? "open" : "collapsed"}`}
@@ -37,9 +45,9 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
       >
         + New Chat
       </button>
-      <ul className="sidebar-list" role="listbox">
+      <ul className="sidebar-list" role="listbox" aria-orientation="vertical">
         {sortedChats.length === 0 && (
-          <div className="chatlist-empty" style={{ margin: "30px 0", color: "var(--text-muted)" }}>
+          <div className="chatlist-empty" style={{ margin: "30px 0" }}>
             <span className="chatlist-empty-icon">🤖</span>
             <span>No past chats yet.</span>
           </div>
@@ -52,6 +60,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
             }
             tabIndex={0}
             onClick={() => onSelectChat(chat.id)}
+            onKeyDown={(e) => handleItemKeyDown(e, chat.id)}
             aria-label={`Open chat: ${chat.title || "Untitled Chat"}`}
             aria-selected={chat.id === activeSessionId}
             role="option"
