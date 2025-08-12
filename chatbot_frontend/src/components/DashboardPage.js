@@ -1,30 +1,24 @@
 import React, { useEffect } from "react";
-import ChatList from "./ChatList";
 import StartNewChatButton from "./StartNewChatButton";
 import Header from "./Header";
 import "./DashboardPage.css";
 
 /**
- * DashboardPage - main dashboard after login
- * Allows user to start a new chat or resume previous chats.
+ * DashboardPage - simplified post-login landing (optional route)
+ * Displays a welcome and encourages starting a new chat.
+ * Previous chats are not shown here and should be accessed via the sidebar within chat view.
  * 
  * @param {Object} props
  * @param {Object} props.user - Authenticated user object
  * @param {Function} props.onLogout - Handler to logout
  * @param {Function} props.onStartNewChat - Handler to create a new chat
- * @param {Function} props.onResumeChat - Handler to resume an existing chat (chatId)
  * @returns {JSX.Element} Dashboard component
  */
 // PUBLIC_INTERFACE
-function DashboardPage({ user, onLogout, chats, onStartNewChat, onResumeChat }) {
+function DashboardPage({ user, onLogout, onStartNewChat }) {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", "dark");
   }, []);
-
-  // Only show chats with at least one message
-  const chatsWithMessages = Array.isArray(chats)
-    ? chats.filter((session) => Array.isArray(session.messages) && session.messages.length > 0)
-    : [];
 
   return (
     <div className="dashboard-page">
@@ -34,9 +28,13 @@ function DashboardPage({ user, onLogout, chats, onStartNewChat, onResumeChat }) 
           <h2 className="dashboard-title">Welcome, {user?.username || "User"}!</h2>
           <StartNewChatButton onClick={onStartNewChat} />
         </section>
-        <section className="dashboard-chats-section" aria-label="Previous Chats">
-          <h3 className="chats-title">Previous Chats</h3>
-          <ChatList chats={chatsWithMessages} onResumeChat={onResumeChat} />
+
+        {/* Removed central Previous Chats list to ensure history only appears in the sidebar */}
+        <section className="dashboard-chats-section" aria-label="Get Started">
+          <h3 className="chats-title">Get Started</h3>
+          <p style={{ color: "var(--text-secondary)" }}>
+            Start a new conversation using the button above. Your previous chats are available from the sidebar in the chat view.
+          </p>
         </section>
       </main>
     </div>

@@ -55,11 +55,10 @@ function App() {
 
   // ---- APP ROUTING ---------------------
   const [appPath, setAppPath] = useState(() => {
-    const hasUser = !!localStorage.getItem("auth_user");
     if (window.location.hash.startsWith("#/chat/"))
       return window.location.hash.replace("#", "");
     if (window.location.hash === "#/dashboard") return "/dashboard";
-    return hasUser ? "/dashboard" : "/";
+    return "/";
   });
 
   const navigate = (path) => {
@@ -197,7 +196,17 @@ function App() {
     setIsLoading(false);
     sessionId.current = newId;
     navigate(`/chat/${newId}`);
-  }, [chatSessions]);
+  }, []);
+
+  // Auto-start a new chat when user logs in or returns while logged in and not already on a chat route
+  useEffect(() => {
+    if (!user) return;
+    const hash = window.location.hash || "";
+    if (!hash.startsWith("#/chat/")) {
+      handleStartNewChat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // --- Backwards compat for dashboard "Resume chat" (legacy) ---
   const handleResumeChat = useCallback((chatId) => {
@@ -556,8 +565,12 @@ function App() {
     );
   }
 
-  // Fallback: redirect to dashboard
-  navigate("/dashboard");
+  // Fallback: ensure we are on a chat session
+  if (activeSessionId) {
+    navigate(`/chat/${activeSessionId}`);
+  } else {
+    handleStartNewChat();
+  }
   return null;
 }
 
