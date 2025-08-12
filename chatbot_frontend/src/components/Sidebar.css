@@ -20,6 +20,8 @@
   --md-color-on-surface: var(--text-primary, #e3e3e3);
   --md-color-on-surface-variant: var(--text-secondary, #c2c8d0);
   --md-color-outline: var(--border-subtle, rgba(255,255,255,0.08));
+  /* Selected item background: darker than surface for clear selection */
+  --md-color-selected-bg: #1f2836;
 
   display: flex;
   flex-direction: column;
@@ -141,7 +143,7 @@
   padding: 12px 14px;
   margin: 2px 8px;
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   width: calc(100% - 16px);
   cursor: pointer;
   color: var(--md-color-on-surface);
@@ -153,9 +155,7 @@
   transition:
     background var(--transition-normal),
     color var(--transition-normal),
-    border-color var(--transition-normal),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+    transform var(--transition-fast);
   min-height: 44px;
 }
 
@@ -185,7 +185,6 @@
 
 .sidebar-list-item:hover {
   background: var(--md-color-surface-container);
-  border-color: var(--md-color-outline);
 }
 
 .sidebar-list-item:focus-visible {
@@ -194,10 +193,11 @@
 
 /* Selected destination - tonal container look */
 .sidebar-list-item.selected {
-  background: var(--md-color-primary-container);
-  color: var(--md-color-on-primary-container);
-  border-color: rgba(25,118,210,0.32);
-  box-shadow: var(--elev-2);
+  /* Darker than default surface to clearly indicate selection */
+  background: var(--md-color-selected-bg, #1f2836);
+  color: var(--md-color-on-surface);
+  border: none;
+  box-shadow: none;
 }
 
 /* Title text inside item */
