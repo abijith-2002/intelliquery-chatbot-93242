@@ -224,6 +224,83 @@
   overflow: hidden;
 }
 
+/* Inline action buttons container */
+.sidebar-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  opacity: 0.75;
+  transition: opacity var(--transition-fast);
+}
+
+/* Reveal actions more clearly on hover/focus of the item */
+.sidebar-list-item:hover .sidebar-item-actions,
+.sidebar-list-item:focus-within .sidebar-item-actions,
+.sidebar-list-item.selected .sidebar-item-actions {
+  opacity: 1;
+}
+
+/* Action button base */
+.sidebar-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--md-color-on-surface-variant);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  outline: none;
+  font-size: 14px;
+}
+
+/* Hover/focus feedback */
+.sidebar-action-btn:hover {
+  background: var(--md-color-surface-container);
+  color: var(--md-color-on-surface);
+}
+
+.sidebar-action-btn:focus-visible {
+  border-color: rgba(25,118,210,0.45);
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.25);
+}
+
+/* Specific variants */
+.rename-btn {
+  /* neutral */
+}
+
+.delete-btn {
+  color: #ef9a9a;
+}
+
+.delete-btn:hover {
+  color: #ffcdd2;
+  background: rgba(239,68,68,0.12);
+}
+
+.delete-btn:focus-visible {
+  border-color: rgba(239,68,68,0.5);
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.25);
+}
+
+/* Responsive tweak: tighten spacing on small screens */
+@media (max-width: 500px) {
+  .sidebar-item-actions {
+    gap: 4px;
+    margin-left: 6px;
+  }
+  .sidebar-action-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: 13px;
+  }
+}
+
 /* Empty state inside list area */
 .chatlist-empty {
   margin: 18px 14px;

@@ -213,6 +213,74 @@ function App() {
     handleSelectChatFromSidebar(chatId);
   }, [handleSelectChatFromSidebar]);
 
+  // PUBLIC_INTERFACE
+  /**
+   * Delete a chat session by id with confirmation.
+   * - Removes from chatSessions
+   * - If deleting the active chat, navigates to the most recent remaining chat or starts a new chat
+   */
+  const handleDeleteChat = useCallback((chatId) => {
+    if (!chatId) return;
+    const confirmDelete = window.confirm("Delete this chat permanently? This cannot be undone.");
+    if (!confirmDelete) return;
+
+    // Compute next sessions list based on current state
+    const nextSessions = chatSessions.filter((c) => c.id !== chatId);
+
+    setChatSessions(nextSessions);
+
+    if (activeSessionId === chatId) {
+      // If there are remaining sessions, pick the most recent one
+      const remainingSorted = nextSessions
+        .filter((c) => Array.isArray(c.messages) && c.messages.length > 0)
+        .slice()
+        .sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0));
+
+      if (remainingSorted.length > 0) {
+        const next = remainingSorted[0];
+        setActiveSessionId(next.id);
+        setMessages(next.messages || []);
+        setInput("");
+        setError(null);
+        setRetryableMessage(null);
+        setIsLoading(false);
+        sessionId.current = next.id;
+        navigate(`/chat/${next.id}`);
+      } else {
+        // No remaining chats: reset and start a new chat
+        setMessages([]);
+        setInput("");
+        setError(null);
+        setRetryableMessage(null);
+        setIsLoading(false);
+        setActiveSessionId("");
+        sessionId.current = "";
+        handleStartNewChat();
+      }
+    }
+  }, [activeSessionId, chatSessions, handleStartNewChat, navigate]);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Rename a chat session by id using a prompt
+   * - Updates only the title field; keeps messages and metadata
+   */
+  const handleRenameChat = useCallback((chatId) => {
+    if (!chatId) return;
+    const sess = chatSessions.find((c) => c.id === chatId);
+    const currentTitle = sess?.title || "Untitled";
+
+    const input = window.prompt("Enter new chat name:", currentTitle);
+    if (input == null) return; // cancelled
+
+    const nextTitle = input.trim();
+    if (!nextTitle) return;
+
+    setChatSessions((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, title: nextTitle } : c))
+    );
+  }, [chatSessions]);
+
   // Whenever we switch activeSessionId, update messages for that session
   useEffect(() => {
     if (!activeSessionId) return;
@@ -502,6 +570,8 @@ function App() {
           onSelectChat={handleSelectChatFromSidebar}
           onNewChat={handleStartNewChat}
           isOpen={sidebarOpen}
+          onDeleteChat={handleDeleteChat}
+          onRenameChat={handleRenameChat}
         />
         <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
           <Header

@@ -13,7 +13,7 @@ import MinimalChatIcon from "./icons/MinimalChatIcon";
  * @returns {JSX.Element}
  */
 // PUBLIC_INTERFACE
-function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = true }) {
+function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = true, onDeleteChat, onRenameChat }) {
   /** This is a public function: Sidebar renders the chat list and new chat action; collapsible via isOpen. */
   // Sort by last active desc and only include chats with messages
   const sortedChats = Array.isArray(chats)
@@ -74,6 +74,40 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
           >
             {/* Only show the chat title in the sidebar */}
             <span className="sidebar-list-title">{chat.title || "Untitled"}</span>
+
+            {/* Inline actions: rename and delete */}
+            {(typeof onRenameChat === "function" || typeof onDeleteChat === "function") && (
+              <span className="sidebar-item-actions" aria-hidden="false">
+                {typeof onRenameChat === "function" && (
+                  <button
+                    type="button"
+                    className="sidebar-action-btn rename-btn"
+                    title="Rename chat"
+                    aria-label={`Rename chat: ${chat.title || "Untitled"}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRenameChat(chat.id);
+                    }}
+                  >
+                    ✏️
+                  </button>
+                )}
+                {typeof onDeleteChat === "function" && (
+                  <button
+                    type="button"
+                    className="sidebar-action-btn delete-btn"
+                    title="Delete chat"
+                    aria-label={`Delete chat: ${chat.title || "Untitled"}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteChat(chat.id);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                )}
+              </span>
+            )}
           </li>
         ))}
       </ul>
