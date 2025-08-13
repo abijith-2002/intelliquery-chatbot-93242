@@ -77,9 +77,20 @@
 .assistant-content-direct {
   background: transparent;
   padding: 0;
-  max-width: 100%;
+
+  /* Limit AI response content to a typical message width (similar to .chat-bubble 70%)
+     so code blocks and other elements don't stretch beyond the usual content width. */
+  max-width: clamp(280px, 70%, 860px);
+
   border: none;
   border-radius: 0;
+}
+
+/* Ensure responsiveness: on smaller screens, allow full width */
+@media (max-width: 768px) {
+  .assistant-content-direct {
+    max-width: 100%;
+  }
 }
 
 .message-content {
