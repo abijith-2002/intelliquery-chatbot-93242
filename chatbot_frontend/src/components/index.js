@@ -10,3 +10,4 @@ export { default as DashboardPage } from './DashboardPage';
 export { default as ChatList } from './ChatList';
 export { default as StartNewChatButton } from './StartNewChatButton';
 export { default as Sidebar } from './Sidebar';
+export { default as ModalDialog } from './ModalDialog';

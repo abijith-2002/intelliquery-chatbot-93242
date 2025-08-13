@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import AuthPage from './components/AuthPage';
 import DashboardPage from './components/DashboardPage';
 import "./App.css";
+import ModalDialog from './components/ModalDialog';
 
 /**
  * Knowledge Chat Frontend
@@ -126,6 +127,82 @@ function App() {
 
   const sessionId = useRef(activeSessionId || generateSessionId());
 
+  // --- Modal/Dialog state for delete/rename ---
+  const [modalState, setModalState] = useState({
+    open: false,
+    type: null,        // 'delete' | 'rename' | null
+    chatId: null,
+    defaultValue: '',  // used for rename default title
+  });
+
+  const openDeleteDialog = useCallback((chatId) => {
+    setModalState({ open: true, type: 'delete', chatId, defaultValue: '' });
+  }, []);
+
+  // Confirm handler for modal dialog (delete/rename)
+  const handleDialogConfirm = useCallback((value) => {
+    if (!modalState.open) return;
+
+    if (modalState.type === 'delete' && modalState.chatId) {
+      const chatId = modalState.chatId;
+
+      // Compute next sessions list based on current state
+      const nextSessions = chatSessions.filter((c) => c.id !== chatId);
+      setChatSessions(nextSessions);
+
+      if (activeSessionId === chatId) {
+        // If there are remaining sessions, pick the most recent one
+        const remainingSorted = nextSessions
+          .filter((c) => Array.isArray(c.messages) && c.messages.length > 0)
+          .slice()
+          .sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0));
+
+        if (remainingSorted.length > 0) {
+          const next = remainingSorted[0];
+          setActiveSessionId(next.id);
+          setMessages(next.messages || []);
+          setInput("");
+          setError(null);
+          setRetryableMessage(null);
+          setIsLoading(false);
+          sessionId.current = next.id;
+          navigate(`/chat/${next.id}`);
+        } else {
+          // No remaining chats: reset and start a new chat
+          setMessages([]);
+          setInput("");
+          setError(null);
+          setRetryableMessage(null);
+          setIsLoading(false);
+          setActiveSessionId("");
+          sessionId.current = "";
+          handleStartNewChat();
+        }
+      }
+    } else if (modalState.type === 'rename' && modalState.chatId) {
+      const nextTitle = (value || '').trim();
+      if (nextTitle) {
+        setChatSessions((prev) =>
+          prev.map((c) => (c.id === modalState.chatId ? { ...c, title: nextTitle } : c))
+        );
+      }
+    }
+
+    setModalState({ open: false, type: null, chatId: null, defaultValue: '' });
+  }, [modalState, chatSessions, activeSessionId, navigate, handleStartNewChat]);
+
+  const handleDialogCancel = useCallback(() => {
+    closeDialog();
+  }, [closeDialog]);
+
+  const openRenameDialog = useCallback((chatId, defaultValue = '') => {
+    setModalState({ open: true, type: 'rename', chatId, defaultValue });
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setModalState((prev) => ({ ...prev, open: false }));
+  }, []);
+
   // =========== LOGOUT ===========
   const handleLogout = useCallback(() => {
     setUser(null);
@@ -221,44 +298,8 @@ function App() {
    */
   const handleDeleteChat = useCallback((chatId) => {
     if (!chatId) return;
-    const confirmDelete = window.confirm("Delete this chat permanently? This cannot be undone.");
-    if (!confirmDelete) return;
-
-    // Compute next sessions list based on current state
-    const nextSessions = chatSessions.filter((c) => c.id !== chatId);
-
-    setChatSessions(nextSessions);
-
-    if (activeSessionId === chatId) {
-      // If there are remaining sessions, pick the most recent one
-      const remainingSorted = nextSessions
-        .filter((c) => Array.isArray(c.messages) && c.messages.length > 0)
-        .slice()
-        .sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0));
-
-      if (remainingSorted.length > 0) {
-        const next = remainingSorted[0];
-        setActiveSessionId(next.id);
-        setMessages(next.messages || []);
-        setInput("");
-        setError(null);
-        setRetryableMessage(null);
-        setIsLoading(false);
-        sessionId.current = next.id;
-        navigate(`/chat/${next.id}`);
-      } else {
-        // No remaining chats: reset and start a new chat
-        setMessages([]);
-        setInput("");
-        setError(null);
-        setRetryableMessage(null);
-        setIsLoading(false);
-        setActiveSessionId("");
-        sessionId.current = "";
-        handleStartNewChat();
-      }
-    }
-  }, [activeSessionId, chatSessions, handleStartNewChat, navigate]);
+    openDeleteDialog(chatId);
+  }, [openDeleteDialog]);
 
   // PUBLIC_INTERFACE
   /**
@@ -269,17 +310,8 @@ function App() {
     if (!chatId) return;
     const sess = chatSessions.find((c) => c.id === chatId);
     const currentTitle = sess?.title || "Untitled";
-
-    const input = window.prompt("Enter new chat name:", currentTitle);
-    if (input == null) return; // cancelled
-
-    const nextTitle = input.trim();
-    if (!nextTitle) return;
-
-    setChatSessions((prev) =>
-      prev.map((c) => (c.id === chatId ? { ...c, title: nextTitle } : c))
-    );
-  }, [chatSessions]);
+    openRenameDialog(chatId, currentTitle);
+  }, [chatSessions, openRenameDialog]);
 
   // Whenever we switch activeSessionId, update messages for that session
   useEffect(() => {
@@ -629,6 +661,22 @@ function App() {
             placeholder={
               isLoading ? "Processing your message..." : "Type your message..."
             }
+          />
+
+          <ModalDialog
+            open={modalState.open}
+            title={modalState.type === 'delete' ? 'Delete chat?' : 'Rename chat'}
+            description={
+              modalState.type === 'delete'
+                ? 'This will permanently delete this chat. This cannot be undone.'
+                : 'Enter a new name for this chat.'
+            }
+            variant={modalState.type === 'rename' ? 'prompt' : 'confirm'}
+            defaultValue={modalState.type === 'rename' ? modalState.defaultValue : ''}
+            confirmText={modalState.type === 'delete' ? 'Delete' : 'Save'}
+            cancelText="Cancel"
+            onConfirm={handleDialogConfirm}
+            onClose={handleDialogCancel}
           />
         </div>
       </div>
