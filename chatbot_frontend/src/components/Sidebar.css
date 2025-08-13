@@ -41,6 +41,10 @@
   z-index: 8;
   border-right: 1px solid var(--md-color-outline);
   box-shadow: var(--elev-1);
+
+  /* Ensure the sidebar never shrinks in the horizontal flex layout */
+  flex: 0 0 auto;     /* flex-grow:0; flex-shrink:0; flex-basis:auto (uses width) */
+  flex-shrink: 0;     /* explicit for clarity */
 }
 
 /* Collapsed/expanded states for smooth animation */
