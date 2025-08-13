@@ -147,7 +147,19 @@ function App() {
     setModalState({ open: true, type: 'rename', chatId, defaultValue });
   }, []);
 
-  // (moved earlier above to resolve initialization/hoisting issue)
+  // Start new chat (button on sidebar or header) - moved above all references to avoid TDZ
+  const handleStartNewChat = useCallback(() => {
+    const now = Date.now();
+    const newId = "session-" + Math.random().toString(36).substr(2, 12) + "-" + now;
+    setActiveSessionId(newId);
+    setMessages([]);
+    setInput("");
+    setError(null);
+    setRetryableMessage(null);
+    setIsLoading(false);
+    sessionId.current = newId;
+    navigate(`/chat/${newId}`);
+  }, []);
 
   // Confirm handler for modal dialog (delete/rename)
   const handleDialogConfirm = useCallback((value) => {
@@ -262,20 +274,6 @@ function App() {
       navigate(`/chat/${chatId}`);
     }
   }, [chatSessions, activeSessionId]);
-
-  // Start new chat (button on sidebar or header)
-  const handleStartNewChat = useCallback(() => {
-    const now = Date.now();
-    const newId = "session-" + Math.random().toString(36).substr(2, 12) + "-" + now;
-    setActiveSessionId(newId);
-    setMessages([]);
-    setInput("");
-    setError(null);
-    setRetryableMessage(null);
-    setIsLoading(false);
-    sessionId.current = newId;
-    navigate(`/chat/${newId}`);
-  }, []);
 
   // Auto-start a new chat when user logs in or returns while logged in and not already on a chat route
   useEffect(() => {
@@ -695,4 +693,3 @@ function App() {
 }
 
 export default App;
-
