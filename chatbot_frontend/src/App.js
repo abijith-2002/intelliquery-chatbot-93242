@@ -605,7 +605,7 @@ function App() {
           onDeleteChat={handleDeleteChat}
           onRenameChat={handleRenameChat}
         />
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh"}}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100vh", minWidth: 0 }}>
           <Header
             onLogout={handleLogout}
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}

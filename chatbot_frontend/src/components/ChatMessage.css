@@ -216,25 +216,104 @@
 .response-content .code-block {
   position: relative;
   margin: 12px 0;
-  padding: 12px 14px;
+  /* Extra top padding to reserve a small header area for the copy button */
+  padding: 28px 14px 14px 14px;
   /* Consistent dark background for code blocks (works in dark mode; remains readable in light too) */
   background: var(--code-block-bg, #111827); /* slate-900 default */
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
 
+  /* Strictly constrain within the chat content width */
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+
   /* Horizontal scrolling only, to avoid viewport overflow from long lines */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 
-  /* Ensure the block never exceeds the container width */
+  /* Improve code readability and density */
+  tab-size: 2;
+}
+
+/* Minimal copy button positioned in the top-right corner of the code block */
+.code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  opacity: 0.65;
+  transition: color var(--transition-fast), opacity var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.code-copy-btn:hover {
+  opacity: 1;
+  background: var(--overlay-light);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+.code-copy-btn:active {
+  transform: translateY(0.5px);
+}
+
+.code-copy-btn.copied {
+  color: #10b981; /* emerald-500 for success state */
+  opacity: 1;
+}
+
+.code-copy-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Ensure icon scales nicely */
+.code-copy-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Generic pre/code fallback to ensure strict width and internal scrolling */
+.response-content pre {
+  display: block;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--code-block-bg, #111827);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
 
-  /* Improve code readability and density */
-  tab-size: 2;
+.response-content pre code {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  color: inherit;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.6;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* Styled scrollbars for the code block (subtle, matching theme) */
@@ -260,11 +339,13 @@
   font-size: 0.9em;
   line-height: 1.6;
 
-  /* Keep layout stable and enable smooth horizontal scrolling */
-  display: inline-block;
-  min-width: 100%;
+  /* Keep layout stable and constrain to the chat content width */
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 
-  /* Preserve formatting and prevent wrapping to avoid overflow; scroll instead */
+  /* Preserve formatting and prevent wrapping; horizontal scroll stays within pre */
   white-space: pre;
   word-break: normal;
   overflow-wrap: normal;
@@ -341,7 +422,8 @@
   }
 
   .response-content .code-block {
-    padding: 10px 12px;
+    /* Reserve top space for the copy button */
+    padding: 24px 12px 12px 12px;
     border-radius: 8px;
 
     /* Keep mobile-friendly sizing without overflow */
