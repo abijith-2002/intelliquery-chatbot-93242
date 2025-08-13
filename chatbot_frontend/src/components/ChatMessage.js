@@ -5,6 +5,7 @@ import rehypeHighlight from 'rehype-highlight';
 // Dark theme highlight.js style; adapts nicely to a dark UI
 import 'highlight.js/styles/atom-one-dark.css';
 import './ChatMessage.css';
+import MinimalCopyIcon from './icons/MinimalCopyIcon';
 
 /**
  * Normalize Markdown to ensure a newline after any horizontal rule line '---'.
@@ -47,6 +48,66 @@ function ensureNewlineAfterHorizontalRule(md = '') {
   }
 
   return out.join('\n');
+}
+
+/**
+ * CodeBlock - custom renderer for fenced code blocks with a top-right copy button.
+ * Unobtrusive, does not affect width/alignment; adds a small top padding for the button.
+ */
+function CodeBlock({ className, children, ...props }) {
+  const [copied, setCopied] = React.useState(false);
+  const codeText = React.useMemo(() => String(children).replace(/\n$/, ''), [children]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(codeText);
+      setCopied(true);
+      window.clearTimeout((handleCopy)._t);
+      (handleCopy)._t = window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // Fallback for environments without Clipboard API permissions
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = codeText;
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        setCopied(true);
+        window.clearTimeout((handleCopy)._t);
+        (handleCopy)._t = window.setTimeout(() => setCopied(false), 1200);
+      } catch {
+        // swallow
+      }
+    }
+  };
+
+  return (
+    <pre className="code-block">
+      <button
+        type="button"
+        className={`code-copy-btn${copied ? ' copied' : ''}`}
+        onClick={handleCopy}
+        aria-label={copied ? 'Copied' : 'Copy code'}
+        title={copied ? 'Copied!' : 'Copy code'}
+      >
+        {copied ? (
+          // Minimal check icon
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+            <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <MinimalCopyIcon size={14} />
+        )}
+      </button>
+      <code className={className || ''} {...props}>
+        {children}
+      </code>
+    </pre>
+  );
 }
 
 // PUBLIC_INTERFACE
@@ -102,7 +163,7 @@ function ChatMessage({ message, index }) {
               // Make links open in a new tab securely
               components={{
                 a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
-                // Customize code rendering to ensure consistent structure and scoping
+                // Inline/fenced code rendering
                 code({ inline, className, children, ...props }) {
                   if (inline) {
                     return (
@@ -111,14 +172,8 @@ function ChatMessage({ message, index }) {
                       </code>
                     );
                   }
-                  // For fenced code blocks, wrap with <pre> for styling and scrolling
-                  return (
-                    <pre className="code-block">
-                      <code className={className || ''} {...props}>
-                        {children}
-                      </code>
-                    </pre>
-                  );
+                  // Fenced block with copy button
+                  return <CodeBlock className={className} {...props}>{children}</CodeBlock>;
                 },
               }}
               linkTarget="_blank"
