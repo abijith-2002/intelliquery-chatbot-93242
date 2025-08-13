@@ -56,14 +56,29 @@ function ensureNewlineAfterHorizontalRule(md = '') {
  */
 function CodeBlock({ className, children, ...props }) {
   const [copied, setCopied] = React.useState(false);
-  const codeText = React.useMemo(() => String(children).replace(/\n$/, ''), [children]);
+  // Use a ref to the <code> element so we can reliably capture the rendered plain text,
+  // even when rehype-highlight wraps tokens in nested spans.
+  const codeRef = React.useRef(null);
+
+  const getCodeText = React.useCallback(() => {
+    // Prefer DOM textContent to avoid copying "[object Object]" from React elements
+    if (codeRef.current && typeof codeRef.current.textContent === 'string') {
+      return codeRef.current.textContent;
+    }
+    // Fallback: join string children if available
+    if (Array.isArray(children)) {
+      return children.map((c) => (typeof c === 'string' ? c : '')).join('');
+    }
+    return typeof children === 'string' ? children : '';
+  }, [children]);
 
   const handleCopy = async () => {
+    const codeText = getCodeText();
     try {
       await navigator.clipboard.writeText(codeText);
       setCopied(true);
-      window.clearTimeout((handleCopy)._t);
-      (handleCopy)._t = window.setTimeout(() => setCopied(false), 1200);
+      window.clearTimeout(handleCopy._t);
+      handleCopy._t = window.setTimeout(() => setCopied(false), 1200);
     } catch {
       // Fallback for environments without Clipboard API permissions
       try {
@@ -77,8 +92,8 @@ function CodeBlock({ className, children, ...props }) {
         document.execCommand('copy');
         document.body.removeChild(ta);
         setCopied(true);
-        window.clearTimeout((handleCopy)._t);
-        (handleCopy)._t = window.setTimeout(() => setCopied(false), 1200);
+        window.clearTimeout(handleCopy._t);
+        handleCopy._t = window.setTimeout(() => setCopied(false), 1200);
       } catch {
         // swallow
       }
@@ -103,7 +118,7 @@ function CodeBlock({ className, children, ...props }) {
           <MinimalCopyIcon size={14} />
         )}
       </button>
-      <code className={className || ''} {...props}>
+      <code ref={codeRef} className={className || ''} {...props}>
         {children}
       </code>
     </pre>
