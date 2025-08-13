@@ -223,18 +223,51 @@
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
 
+  /* Strictly constrain within the chat content width */
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+
   /* Horizontal scrolling only, to avoid viewport overflow from long lines */
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 
-  /* Ensure the block never exceeds the container width */
+  /* Improve code readability and density */
+  tab-size: 2;
+}
+
+/* Generic pre/code fallback to ensure strict width and internal scrolling */
+.response-content pre {
+  display: block;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--code-block-bg, #111827);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
 
-  /* Improve code readability and density */
-  tab-size: 2;
+.response-content pre code {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  color: inherit;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.6;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* Styled scrollbars for the code block (subtle, matching theme) */
@@ -260,11 +293,13 @@
   font-size: 0.9em;
   line-height: 1.6;
 
-  /* Keep layout stable and enable smooth horizontal scrolling */
-  display: inline-block;
-  min-width: 100%;
+  /* Keep layout stable and constrain to the chat content width */
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 
-  /* Preserve formatting and prevent wrapping to avoid overflow; scroll instead */
+  /* Preserve formatting and prevent wrapping; horizontal scroll stays within pre */
   white-space: pre;
   word-break: normal;
   overflow-wrap: normal;
