@@ -230,8 +230,11 @@
   align-items: center;
   gap: 6px;
   margin-left: 8px;
-  opacity: 0.75;
-  transition: opacity var(--transition-fast);
+  /* Hidden by default; revealed on hover/focus for each item */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
 }
 
 /* Reveal actions more clearly on hover/focus of the item */
@@ -239,6 +242,8 @@
 .sidebar-list-item:focus-within .sidebar-item-actions,
 .sidebar-list-item.selected .sidebar-item-actions {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* Action button base */

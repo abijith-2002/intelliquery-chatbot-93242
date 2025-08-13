@@ -1,6 +1,8 @@
 import React from "react";
 import "./Sidebar.css";
 import MinimalChatIcon from "./icons/MinimalChatIcon";
+import MinimalRenameIcon from "./icons/MinimalRenameIcon";
+import MinimalTrashIcon from "./icons/MinimalTrashIcon";
 
 /**
  * Sidebar - displays chat sessions, allows switching and starting new chat
@@ -89,7 +91,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
                       onRenameChat(chat.id);
                     }}
                   >
-                    ✏️
+                    <MinimalRenameIcon size={16} />
                   </button>
                 )}
                 {typeof onDeleteChat === "function" && (
@@ -103,7 +105,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
                       onDeleteChat(chat.id);
                     }}
                   >
-                    🗑️
+                    <MinimalTrashIcon size={16} />
                   </button>
                 )}
               </span>
