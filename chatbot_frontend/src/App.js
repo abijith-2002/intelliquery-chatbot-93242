@@ -135,9 +135,19 @@ function App() {
     defaultValue: '',  // used for rename default title
   });
 
+  const closeDialog = useCallback(() => {
+    setModalState((prev) => ({ ...prev, open: false }));
+  }, []);
+
   const openDeleteDialog = useCallback((chatId) => {
     setModalState({ open: true, type: 'delete', chatId, defaultValue: '' });
   }, []);
+
+  const openRenameDialog = useCallback((chatId, defaultValue = '') => {
+    setModalState({ open: true, type: 'rename', chatId, defaultValue });
+  }, []);
+
+  // (moved earlier above to resolve initialization/hoisting issue)
 
   // Confirm handler for modal dialog (delete/rename)
   const handleDialogConfirm = useCallback((value) => {
@@ -194,14 +204,6 @@ function App() {
   const handleDialogCancel = useCallback(() => {
     closeDialog();
   }, [closeDialog]);
-
-  const openRenameDialog = useCallback((chatId, defaultValue = '') => {
-    setModalState({ open: true, type: 'rename', chatId, defaultValue });
-  }, []);
-
-  const closeDialog = useCallback(() => {
-    setModalState((prev) => ({ ...prev, open: false }));
-  }, []);
 
   // =========== LOGOUT ===========
   const handleLogout = useCallback(() => {
