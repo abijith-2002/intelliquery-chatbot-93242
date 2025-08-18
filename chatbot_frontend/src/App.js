@@ -123,6 +123,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retryableMessage, setRetryableMessage] = useState(null);
+  // New: attachments selected by the user (metadata only)
+  const [attachments, setAttachments] = useState([]);
   const chatEndRef = useRef(null);
 
   const sessionId = useRef(activeSessionId || generateSessionId());
@@ -407,6 +409,68 @@ function App() {
     setInput(e.target.value);
   }, []);
 
+  // PUBLIC_INTERFACE
+  /**
+   * Handle files selected from ChatInput. Performs client-side validation:
+   * - Restrict to .pdf, .txt, .docx, .xlsx
+   * - Max 10MB per file
+   * - Up to 5 attachments total
+   * Displays errors via ErrorMessage component.
+   * @param {File[]} files
+   */
+  const handleFilesSelected = useCallback((files) => {
+    if (!Array.isArray(files) || files.length === 0) return;
+
+    const ALLOWED = new Set(['pdf','txt','docx','xlsx']);
+    const MAX_SIZE = 10 * 1024 * 1024;
+    const MAX_ATTACH = 5;
+
+    const current = Array.isArray(attachments) ? attachments.slice() : [];
+    const remaining = Math.max(0, MAX_ATTACH - current.length);
+
+    const queue = files.slice(0, remaining);
+    const next = [];
+    const seen = new Set(current.map(a => a.id));
+
+    for (const f of queue) {
+      const ext = (f.name.split('.').pop() || '').toLowerCase();
+      const id = `${f.name}__${f.size}__${f.lastModified}`;
+      if (!ALLOWED.has(ext)) {
+        setError(`Unsupported file type: "${f.name}". Allowed types: .pdf, .txt, .docx, .xlsx`);
+        continue;
+      }
+      if (f.size > MAX_SIZE) {
+        setError(`"${f.name}" is too large. Max size is 10 MB.`);
+        continue;
+      }
+      if (seen.has(id)) continue;
+      next.push({ id, name: f.name, size: f.size, ext, file: f });
+      seen.add(id);
+    }
+
+    if (next.length > 0) {
+      setAttachments(current.concat(next));
+    }
+  }, [attachments]);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Remove a single attachment by id.
+   * @param {string} id
+   */
+  const handleRemoveAttachment = useCallback((id) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  }, []);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Propagate validation errors from ChatInput to the app-level ErrorMessage
+   * @param {string} message
+   */
+  const handleAttachmentValidationError = useCallback((message) => {
+    setError(message);
+  }, []);
+
   // A chat always belongs to the sessionId (active chat)
   const CHAT_TITLE_ENDPOINT = `${API_BASE_URL}/chat/title`;
 
@@ -505,6 +569,8 @@ function App() {
 
         setMessages((prevMessages) => [...prevMessages, assistantMessage]);
         setRetryableMessage(null);
+        // Clear attachments after successful send (once backend integration is added, upload will happen before this)
+        setAttachments([]);
 
         // If a title was generated, update chatSessions (and sync to localStorage)
         if (firstMsg && generatedTitle) {
@@ -661,6 +727,10 @@ function App() {
             placeholder={
               isLoading ? "Processing your message..." : "Type your message..."
             }
+            attachments={attachments}
+            onFilesSelected={handleFilesSelected}
+            onRemoveAttachment={handleRemoveAttachment}
+            onValidationError={handleAttachmentValidationError}
           />
 
           <ModalDialog
