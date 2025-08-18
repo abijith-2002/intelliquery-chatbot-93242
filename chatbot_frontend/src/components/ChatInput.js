@@ -70,12 +70,17 @@ function ChatInput({
     el.style.overflowY = el.scrollHeight > MAX_HEIGHT ? 'auto' : 'hidden';
   }, []);
 
-  // Focus textarea on component mount if not disabled
+  // Focus textarea on component mount if not disabled and a file is attached
   useEffect(() => {
-    if (textareaRef.current && !disabled) {
+    if (
+      textareaRef.current &&
+      !disabled &&
+      Array.isArray(attachments) &&
+      attachments.length > 0
+    ) {
       textareaRef.current.focus();
     }
-  }, [disabled]);
+  }, [disabled, attachments]);
 
   // Keep height in sync with value changes
   useEffect(() => {
@@ -248,7 +253,7 @@ function ChatInput({
           placeholder={effectivePlaceholder}
           rows={1}
           maxLength={2000}
-          disabled={disabled}
+          disabled={disabled || !hasAttachments}
           aria-label="Type your message"
           aria-multiline="true"
           aria-describedby={!hasAttachments ? helperId : undefined}
