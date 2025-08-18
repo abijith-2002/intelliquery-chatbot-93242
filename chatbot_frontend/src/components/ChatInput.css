@@ -205,7 +205,8 @@
   bottom: 8px;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  /* Make the hover/focus background perfectly circular */
+  border-radius: 50%;
   background: transparent;
   color: var(--text-secondary);
   border: 1px solid transparent;
@@ -213,17 +214,34 @@
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
+  /* Prevent default tap highlight that can look square on mobile */
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
+/* Keep the hover ring circular and clean */
 .attach-btn:hover {
   background: var(--overlay-light);
   color: var(--text-primary);
   border-color: var(--border-subtle);
 }
 
+/* Accessible focus state with circular glow */
+.attach-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  border-color: var(--accent-blue);
+}
+
 .attach-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Ensure icon doesn't capture pointer events causing hover flicker */
+.attach-btn svg {
+  pointer-events: none;
 }
 
 /* Responsive Design - Mobile */
