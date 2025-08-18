@@ -27,7 +27,7 @@ import ContextInfoBar from './components/ContextInfoBar';
  *   https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-32892-beta.beta01.cloud.kavia.ai:3001";
 const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
@@ -505,6 +505,33 @@ function App() {
           };
           return { ...prev, [sessionId.current]: next };
         });
+
+        // Post a contextual assistant message summarizing the uploaded content
+        try {
+          const successful = filesProcessed.filter((f) => !f.error);
+          if (successful.length > 0) {
+            const header = successful.length === 1
+              ? `Context added from 1 file: ${successful[0].filename}`
+              : `Context added from ${successful.length} files`;
+            const bulletCount = Math.min(successful.length, 3);
+            const bullets = successful.slice(0, bulletCount).map((f) => {
+              const preview = typeof f.preview === 'string' ? f.preview.trim() : '';
+              const trimmedPreview = preview.length > 300 ? preview.slice(0, 300) + '…' : preview;
+              const chars = typeof f.content_chars === 'number' ? f.content_chars : 0;
+              return `- ${f.filename} (${chars} chars)\n  Preview: ${trimmedPreview || '(no preview available)'}`;
+            }).join('\n');
+            const moreNote = successful.length > bulletCount ? `\n- …and ${successful.length - bulletCount} more file(s)` : '';
+            const content = `✅ ${header}\n\n${bullets}${moreNote}\n\nYou can now ask questions about these file(s) (e.g., "Summarize the document" or "What are the key points?").`;
+            setMessages((prev) => prev.concat({
+              role: 'assistant',
+              rag_answer: 'Context upload summary',
+              gemini_answer: content,
+              timestamp: Date.now(),
+            }));
+          }
+        } catch (e) {
+          // Non-fatal: ignore summary rendering issues
+        }
 
         // Clear uploaded chips after a short delay (context is stored server-side)
         window.setTimeout(() => {
