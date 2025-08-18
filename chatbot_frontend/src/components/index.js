@@ -11,3 +11,5 @@ export { default as ChatList } from './ChatList';
 export { default as StartNewChatButton } from './StartNewChatButton';
 export { default as Sidebar } from './Sidebar';
 export { default as ModalDialog } from './ModalDialog';
+export { default as NotificationToaster } from './NotificationToaster';
+export { default as ContextInfoBar } from './ContextInfoBar';

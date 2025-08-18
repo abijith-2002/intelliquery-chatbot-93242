@@ -8,6 +8,8 @@ import AuthPage from './components/AuthPage';
 import DashboardPage from './components/DashboardPage';
 import "./App.css";
 import ModalDialog from './components/ModalDialog';
+import NotificationToaster from './components/NotificationToaster';
+import ContextInfoBar from './components/ContextInfoBar';
 
 /**
  * Knowledge Chat Frontend
@@ -25,7 +27,7 @@ import ModalDialog from './components/ModalDialog';
  *   https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-32892-beta.beta01.cloud.kavia.ai:3001";
 const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
@@ -123,6 +125,23 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retryableMessage, setRetryableMessage] = useState(null);
+  // New: attachments selected by the user (metadata only)
+  const [attachments, setAttachments] = useState([]);
+  // Toast notifications
+  const [notifications, setNotifications] = useState([]);
+  // Toast helpers
+  const dismissToast = useCallback((id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const pushToast = useCallback((message, type = 'info', ttl = 4500) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    window.setTimeout(() => dismissToast(id), ttl);
+  }, [dismissToast]);
+
+  // Session context stats map: { [sessionId]: { totalChars, filesCount, lastUploadedAt, lastFilesProcessed, lastMessage } }
+  const [contextBySession, setContextBySession] = useState({});
   const chatEndRef = useRef(null);
 
   const sessionId = useRef(activeSessionId || generateSessionId());
@@ -407,6 +426,153 @@ function App() {
     setInput(e.target.value);
   }, []);
 
+  // PUBLIC_INTERFACE
+  /**
+   * Handle files selected from ChatInput.
+   * Immediately uploads files to the backend /chat/upload-context and shows per-file status via chips.
+   * @param {File[]} files
+   */
+  const handleFilesSelected = useCallback((files) => {
+    if (!Array.isArray(files) || files.length === 0) return;
+
+    const current = Array.isArray(attachments) ? attachments.slice() : [];
+
+    // Prepare attachments with uploading status
+    const prepared = files.map((f) => {
+      const ext = (f.name.split('.').pop() || '').toLowerCase();
+      const id = `${f.name}__${f.size}__${f.lastModified}`;
+      return { id, name: f.name, size: f.size, ext, file: f, status: 'uploading' };
+    });
+
+    // Show chips as uploading
+    setAttachments(current.concat(prepared));
+
+    // Perform upload as a batch
+    (async () => {
+      try {
+        const formData = new FormData();
+        formData.append('session_id', sessionId.current);
+        prepared.forEach((p) => formData.append('files', p.file));
+
+        const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
+        const res = await fetch(uploadEndpoint, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          throw new Error(`Upload failed (HTTP ${res.status}): ${t || res.statusText}`);
+        }
+
+        const data = await res.json();
+        const filesProcessed = Array.isArray(data.files_processed) ? data.files_processed : [];
+        const byName = new Map(filesProcessed.map((fp) => [fp.filename, fp]));
+
+        // Update per-file status
+        setAttachments((prev) =>
+          prev.map((att) => {
+            const inBatch = prepared.find((p) => p.id === att.id);
+            if (!inBatch) return att;
+            const result = byName.get(att.name);
+            if (!result) return { ...att, status: 'error', error: 'No result received for this file' };
+            if (result.error) return { ...att, status: 'error', error: result.error };
+            return { ...att, status: 'success' };
+          })
+        );
+
+        // Toasts
+        const successCount = filesProcessed.filter((f) => !f.error).length;
+        const errorCount = filesProcessed.filter((f) => !!f.error).length;
+        if (successCount > 0) {
+          pushToast(`${successCount} file${successCount === 1 ? '' : 's'} uploaded successfully`, 'success');
+        }
+        if (errorCount > 0) {
+          pushToast(`${errorCount} file${errorCount === 1 ? '' : 's'} failed to upload`, 'error');
+        }
+
+        // Update session context stats
+        setContextBySession((prev) => {
+          const existing = prev[sessionId.current] || { totalChars: 0, filesCount: 0 };
+          const addedChars = typeof data.total_chars === 'number' ? data.total_chars : 0;
+          const addedFiles = filesProcessed.filter((f) => !f.error).length;
+          const next = {
+            totalChars: (existing.totalChars || 0) + addedChars,
+            filesCount: (existing.filesCount || 0) + addedFiles,
+            lastUploadedAt: Date.now(),
+            lastFilesProcessed: filesProcessed,
+            lastMessage: data.message || '',
+          };
+          return { ...prev, [sessionId.current]: next };
+        });
+
+        // Post a contextual assistant message summarizing the uploaded content
+        try {
+          const successful = filesProcessed.filter((f) => !f.error);
+          if (successful.length > 0) {
+            const header = successful.length === 1
+              ? `Context added from 1 file: ${successful[0].filename}`
+              : `Context added from ${successful.length} files`;
+            const bulletCount = Math.min(successful.length, 3);
+            const bullets = successful.slice(0, bulletCount).map((f) => {
+              const preview = typeof f.preview === 'string' ? f.preview.trim() : '';
+              const trimmedPreview = preview.length > 300 ? preview.slice(0, 300) + '…' : preview;
+              const chars = typeof f.content_chars === 'number' ? f.content_chars : 0;
+              return `- ${f.filename} (${chars} chars)\n  Preview: ${trimmedPreview || '(no preview available)'}`;
+            }).join('\n');
+            const moreNote = successful.length > bulletCount ? `\n- …and ${successful.length - bulletCount} more file(s)` : '';
+            const content = `✅ ${header}\n\n${bullets}${moreNote}\n\nYou can now ask questions about these file(s) (e.g., "Summarize the document" or "What are the key points?").`;
+            setMessages((prev) => prev.concat({
+              role: 'assistant',
+              rag_answer: 'Context upload summary',
+              gemini_answer: content,
+              timestamp: Date.now(),
+            }));
+          }
+        } catch (e) {
+          // Non-fatal: ignore summary rendering issues
+        }
+
+        // Clear uploaded chips after a short delay (context is stored server-side)
+        window.setTimeout(() => {
+          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
+        }, 1500);
+      } catch (err) {
+        // Mark prepared attachments as error
+        setAttachments((prev) =>
+          prev.map((att) =>
+            prepared.some((p) => p.id === att.id)
+              ? { ...att, status: 'error', error: err.message || 'Upload failed' }
+              : att
+          )
+        );
+        pushToast('File upload failed. Please try again.', 'error');
+        // Auto-clear failed chips after delay
+        window.setTimeout(() => {
+          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
+        }, 2500);
+      }
+    })();
+  }, [attachments, API_BASE_URL, pushToast]);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Remove a single attachment by id.
+   * @param {string} id
+   */
+  const handleRemoveAttachment = useCallback((id) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  }, []);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Propagate validation errors from ChatInput to the app-level ErrorMessage
+   * @param {string} message
+   */
+  const handleAttachmentValidationError = useCallback((message) => {
+    setError(message);
+  }, []);
+
   // A chat always belongs to the sessionId (active chat)
   const CHAT_TITLE_ENDPOINT = `${API_BASE_URL}/chat/title`;
 
@@ -489,22 +655,81 @@ function App() {
             query: trimmedInput,
           }),
         });
+
+        // Robust HTTP error handling with informative details when available
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `HTTP ${response.status}: ${response.statusText}\n${errorText}`
-          );
+          let detail = "";
+          try {
+            const ct = response.headers.get("Content-Type") || "";
+            if (ct.includes("application/json")) {
+              const errJson = await response.json();
+              if (typeof errJson?.detail === "string") {
+                detail = errJson.detail;
+              } else if (errJson) {
+                detail = JSON.stringify(errJson);
+              }
+            } else {
+              detail = await response.text();
+            }
+          } catch {
+            // ignore parse errors
+          }
+          const extras = detail ? `: ${detail}` : "";
+          throw new Error(`Chat request failed (HTTP ${response.status})${extras}`);
         }
-        const data = await response.json();
+
+        // Parse response supporting the new { answer: string } format while remaining backward-compatible.
+        let answerText = "";
+        try {
+          const contentType = response.headers.get("Content-Type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await response.json();
+            if (data && typeof data.answer === "string") {
+              answerText = data.answer;
+            } else if (typeof data.gemini_answer === "string") {
+              // Backward compatibility with legacy format
+              answerText = data.gemini_answer;
+            } else if (typeof data === "string") {
+              // Some servers may return plain string as JSON
+              answerText = data;
+            }
+          } else {
+            // Fallback: try text, then attempt JSON parse
+            const textBody = await response.text();
+            try {
+              const parsed = JSON.parse(textBody);
+              if (parsed && typeof parsed.answer === "string") {
+                answerText = parsed.answer;
+              } else if (typeof parsed.gemini_answer === "string") {
+                answerText = parsed.gemini_answer;
+              } else if (typeof parsed === "string") {
+                answerText = parsed;
+              } else {
+                answerText = textBody;
+              }
+            } catch {
+              answerText = textBody;
+            }
+          }
+        } catch {
+          // Safe default on parse failure
+          answerText = "";
+        }
+
+        if (!answerText || answerText.trim().length === 0) {
+          answerText = "No answer available.";
+        }
+
         const assistantMessage = {
           role: "assistant",
-          rag_answer: data.rag_answer || "No knowledge base response available",
-          gemini_answer: data.gemini_answer || "No Gemini response available",
+          // Display only Gemini's (final) answer
+          gemini_answer: answerText,
           timestamp: Date.now(),
         };
 
         setMessages((prevMessages) => [...prevMessages, assistantMessage]);
         setRetryableMessage(null);
+        // Attachments are managed by the upload flow and cleared after upload.
 
         // If a title was generated, update chatSessions (and sync to localStorage)
         if (firstMsg && generatedTitle) {
@@ -611,6 +836,8 @@ function App() {
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isSidebarOpen={sidebarOpen}
           />
+          {/* Context info bar reminding users their uploaded files are used in answers */}
+          <ContextInfoBar context={contextBySession[activeSessionId]} />
           <main className="chat-main">
             <section
               className="chat-area"
@@ -661,6 +888,10 @@ function App() {
             placeholder={
               isLoading ? "Processing your message..." : "Type your message..."
             }
+            attachments={attachments}
+            onFilesSelected={handleFilesSelected}
+            onRemoveAttachment={handleRemoveAttachment}
+            onValidationError={handleAttachmentValidationError}
           />
 
           <ModalDialog
@@ -678,6 +909,9 @@ function App() {
             onConfirm={handleDialogConfirm}
             onClose={handleDialogCancel}
           />
+
+          {/* Toast notifications */}
+          <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
         </div>
       </div>
     );

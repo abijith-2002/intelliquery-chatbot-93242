@@ -157,7 +157,10 @@ function ChatMessage({ message, index }) {
   }
 
   if (isAssistant) {
-    const rawContent = typeof message.gemini_answer === 'string' ? message.gemini_answer : '';
+    const rawContent =
+      (typeof message.gemini_answer === 'string' && message.gemini_answer.length > 0)
+        ? message.gemini_answer
+        : (typeof message.answer === 'string' ? message.answer : '');
     // Ensure newline after any horizontal rule lines for consistent spacing in AI responses
     const content = ensureNewlineAfterHorizontalRule(rawContent);
 
