@@ -1,4 +1,4 @@
-/* Chat Input Component - Input + Attachments (Fixed Container) */
+ /* Chat Input Component - Input + Attachments (Fixed Container) */
 :root {
   /* Max height for chat textarea before vertical scroll appears */
   --chat-input-max-height: 200px;
@@ -198,6 +198,13 @@
   filter: grayscale(15%);
 }
 
+/* Subtle visual hint when no attachment present */
+.chat-textarea[data-requires-attachment="true"] {
+  /* keep base border but slightly desaturate as a visual cue */
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
 /* Attach button (paperclip), positioned inside the input row */
 .attach-btn {
   position: absolute;
@@ -242,6 +249,15 @@
 /* Ensure icon doesn't capture pointer events causing hover flicker */
 .attach-btn svg {
   pointer-events: none;
+}
+
+/* Helper text below the input, when sending is blocked due to no attachments */
+.helper-text {
+  padding-left: 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  user-select: none;
 }
 
 /* Responsive Design - Mobile */

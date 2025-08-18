@@ -37,7 +37,7 @@ function makeAttachmentId(file) {
  * @param {Function} props.onSubmit - Submit handler (called on Enter key)
  * @param {boolean} props.disabled - Whether input is disabled
  * @param {string} [props.placeholder] - Placeholder text
- * @param {Array<{id: string, name: string, size: number, ext: string}>} [props.attachments] - Selected attachments
+ * @param {Array<{id: string, name: string, size: number, ext: string, status?: string, error?: string}>} [props.attachments] - Selected attachments
  * @param {Function} [props.onFilesSelected] - Handler(files: FileList|Array<File>) after validation; invalid files trigger onValidationError
  * @param {Function} [props.onRemoveAttachment] - Handler(id: string) to remove a specific attachment
  * @param {Function} [props.onValidationError] - Handler(message: string) for validation errors
@@ -87,21 +87,32 @@ function ChatInput({
     autoResize();
   }, [autoResize]);
 
+  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
+  const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+  const trimmedValue = (value || '').trim();
+  const canSend = !disabled && hasAttachments && trimmedValue.length > 0;
+  const helperId = 'chatinput-helper-requires-attachment';
+
   // PUBLIC_INTERFACE
   /**
    * Handle keyboard shortcuts
+   * - Enter to submit (blocked if no file attached)
+   * - Shift+Enter to insert newline
    * @param {KeyboardEvent} e - Keyboard event
    */
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!disabled && value.trim()) {
-        onSubmit(e);
+      // Block submission when disabled or when a file has not been attached
+      if (disabled || !trimmedValue) return;
+      if (!hasAttachments) {
+        onValidationError &&
+          onValidationError('Please attach at least one file before sending your message.');
+        return;
       }
+      onSubmit(e);
     }
   };
-
-  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
 
   // Validate and prepare selected files; call parent with normalized attachments
   const handleFileChange = (e) => {
@@ -159,6 +170,10 @@ function ChatInput({
       fileInputRef.current.click();
     }
   };
+
+  const effectivePlaceholder = hasAttachments
+    ? placeholder
+    : 'Attach a file to enable sending…';
 
   return (
     <div className="chat-input-container" role="group" aria-label="Chat input with attachments">
@@ -230,12 +245,14 @@ function ChatInput({
           onChange={onChange}
           onInput={autoResize}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={effectivePlaceholder}
           rows={1}
           maxLength={2000}
           disabled={disabled}
           aria-label="Type your message"
           aria-multiline="true"
+          aria-describedby={!hasAttachments ? helperId : undefined}
+          data-requires-attachment={!hasAttachments ? 'true' : 'false'}
         />
         <input
           ref={fileInputRef}
@@ -259,6 +276,13 @@ function ChatInput({
           <MinimalAttachmentIcon size={18} />
         </button>
       </div>
+
+      {/* Helper text when sending is blocked due to no attachments */}
+      {!disabled && !hasAttachments && (
+        <div id={helperId} className="helper-text" aria-live="polite">
+          Attach a .pdf, .txt, .docx, or .xlsx to enable sending.
+        </div>
+      )}
     </div>
   );
 }
