@@ -29,18 +29,20 @@ function makeAttachmentId(file) {
  * - Attachments bar with removable chips
  * - Hidden <input type="file" /> and "Attach" button (paperclip)
  * - Auto-resizing textarea (Enter to send, Shift+Enter for newline)
+ * - Explicit Send button
  *
  * Props:
  * @param {Object} props - Component props
  * @param {string} props.value - Current input value
  * @param {Function} props.onChange - Input change handler
- * @param {Function} props.onSubmit - Submit handler (called on Enter key)
- * @param {boolean} props.disabled - Whether input is disabled
+ * @param {Function} props.onSubmit - Submit handler (called on Enter key or Send button)
+ * @param {boolean} props.disabled - Whether input is disabled (e.g., during request)
  * @param {string} [props.placeholder] - Placeholder text
  * @param {Array<{id: string, name: string, size: number, ext: string, status?: string, error?: string}>} [props.attachments] - Selected attachments
  * @param {Function} [props.onFilesSelected] - Handler(files: FileList|Array<File>) after validation; invalid files trigger onValidationError
  * @param {Function} [props.onRemoveAttachment] - Handler(id: string) to remove a specific attachment
  * @param {Function} [props.onValidationError] - Handler(message: string) for validation errors
+ * @param {boolean} [props.hasContext] - Whether the current session already has uploaded context (enables sending even if chips cleared)
  * @returns {JSX.Element} ChatInput component
  */
 function ChatInput({
@@ -53,6 +55,7 @@ function ChatInput({
   onFilesSelected,
   onRemoveAttachment,
   onValidationError,
+  hasContext = false,
 }) {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -70,17 +73,16 @@ function ChatInput({
     el.style.overflowY = el.scrollHeight > MAX_HEIGHT ? 'auto' : 'hidden';
   }, []);
 
-  // Focus textarea on component mount if not disabled and a file is attached
+  // Focus textarea on component mount if not disabled and a file is attached or context exists
   useEffect(() => {
     if (
       textareaRef.current &&
       !disabled &&
-      Array.isArray(attachments) &&
-      attachments.length > 0
+      ((Array.isArray(attachments) && attachments.length > 0) || !!hasContext)
     ) {
       textareaRef.current.focus();
     }
-  }, [disabled, attachments]);
+  }, [disabled, attachments, hasContext]);
 
   // Keep height in sync with value changes
   useEffect(() => {
@@ -94,25 +96,28 @@ function ChatInput({
 
   const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
   const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+  const contextAvailable = !!hasContext;
+  const canChat = hasAttachments || contextAvailable;
+
   const trimmedValue = (value || '').trim();
-  const canSend = !disabled && hasAttachments && trimmedValue.length > 0;
-  const helperId = 'chatinput-helper-requires-attachment';
+  const canSend = !disabled && canChat && trimmedValue.length > 0;
+  const helperId = 'chatinput-helper-requires-attachment-or-context';
 
   // PUBLIC_INTERFACE
   /**
    * Handle keyboard shortcuts
-   * - Enter to submit (blocked if no file attached)
+   * - Enter to submit (blocked if no attachment/context yet)
    * - Shift+Enter to insert newline
    * @param {KeyboardEvent} e - Keyboard event
    */
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Block submission when disabled or when a file has not been attached
+      // Block submission when disabled, empty, or when no attachment/context yet
       if (disabled || !trimmedValue) return;
-      if (!hasAttachments) {
+      if (!canChat) {
         onValidationError &&
-          onValidationError('Please attach at least one file before sending your message.');
+          onValidationError('Please attach at least one file (or wait for context upload) before sending your message.');
         return;
       }
       onSubmit(e);
@@ -176,7 +181,20 @@ function ChatInput({
     }
   };
 
-  const effectivePlaceholder = hasAttachments
+  const handleSendClick = () => {
+    if (!canSend) {
+      if (!canChat) {
+        onValidationError &&
+          onValidationError('Please attach at least one file (or wait for context upload) before sending your message.');
+      }
+      return;
+    }
+    // Ensure preventDefault exists for onSubmit handler
+    const evt = { preventDefault: () => {} };
+    onSubmit(evt);
+  };
+
+  const effectivePlaceholder = canChat
     ? placeholder
     : 'Attach a file to enable sending…';
 
@@ -241,7 +259,7 @@ function ChatInput({
         </div>
       )}
 
-      {/* Textarea and attach button */}
+      {/* Textarea and action buttons */}
       <div className="input-row">
         <textarea
           ref={textareaRef}
@@ -253,11 +271,11 @@ function ChatInput({
           placeholder={effectivePlaceholder}
           rows={1}
           maxLength={2000}
-          disabled={disabled || !hasAttachments}
+          disabled={disabled || !canChat}
           aria-label="Type your message"
           aria-multiline="true"
-          aria-describedby={!hasAttachments ? helperId : undefined}
-          data-requires-attachment={!hasAttachments ? 'true' : 'false'}
+          aria-describedby={!canChat ? helperId : undefined}
+          data-requires-attachment={!canChat ? 'true' : 'false'}
         />
         <input
           ref={fileInputRef}
@@ -280,10 +298,24 @@ function ChatInput({
           {/* Minimal line icon (paperclip) */}
           <MinimalAttachmentIcon size={18} />
         </button>
+        <button
+          type="button"
+          className={`send-btn ${canSend ? '' : 'disabled'}`}
+          onClick={handleSendClick}
+          disabled={!canSend}
+          aria-label="Send message"
+          title={canChat ? 'Send message' : 'Attach a file to enable sending'}
+        >
+          {/* Minimal send icon (paper plane) */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+            <path d="M22 2L11 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </button>
       </div>
 
-      {/* Helper text when sending is blocked due to no attachments */}
-      {!disabled && !hasAttachments && (
+      {/* Helper text when sending is blocked due to no attachments/context */}
+      {!disabled && !canChat && (
         <div id={helperId} className="helper-text" aria-live="polite">
           Attach a .pdf, .txt, .docx, or .xlsx to enable sending.
         </div>

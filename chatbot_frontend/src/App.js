@@ -892,6 +892,7 @@ function App() {
             onFilesSelected={handleFilesSelected}
             onRemoveAttachment={handleRemoveAttachment}
             onValidationError={handleAttachmentValidationError}
+            hasContext={Boolean(contextBySession[activeSessionId]?.filesCount)}
           />
 
           <ModalDialog

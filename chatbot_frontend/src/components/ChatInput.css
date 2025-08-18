@@ -129,7 +129,7 @@
   outline-offset: 2px;
 }
 
-/* Input row holding textarea and attach button */
+/* Input row holding textarea and action buttons */
 .input-row {
   position: relative;
   display: flex;
@@ -146,7 +146,7 @@
   border-radius: 24px; /* Pill */
   border: 2px solid var(--border-color);
   background: #232935; /* Opaque dark */
-  padding: 12px calc(var(--space-5) + 38px) 12px var(--space-5); /* extra right padding for attach button */
+  padding: 12px calc(var(--space-5) + 82px) 12px var(--space-5); /* extra right padding for two buttons */
   font-size: var(--font-size-base);
   font-family: var(--font-family-primary);
   color: var(--text-primary);
@@ -198,7 +198,7 @@
   filter: grayscale(15%);
 }
 
-/* Subtle visual hint when no attachment present */
+/* Subtle visual hint when no attachment/context present */
 .chat-textarea[data-requires-attachment="true"] {
   /* keep base border but slightly desaturate as a visual cue */
   border-color: var(--border-color);
@@ -208,7 +208,7 @@
 /* Attach button (paperclip), positioned inside the input row */
 .attach-btn {
   position: absolute;
-  right: 8px;
+  right: 46px; /* leave room for send button */
   bottom: 8px;
   width: 32px;
   height: 32px;
@@ -246,12 +246,56 @@
   cursor: not-allowed;
 }
 
-/* Ensure icon doesn't capture pointer events causing hover flicker */
-.attach-btn svg {
+/* Send button, positioned at the far right */
+.send-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  color: white;
+  border: 1px solid var(--accent-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.send-btn:hover {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+}
+
+.send-btn:active {
+  background: var(--accent-blue-active);
+  border-color: var(--accent-blue-active);
+}
+
+.send-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.send-btn.disabled,
+.send-btn:disabled {
+  background: var(--overlay-medium);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Ensure icons don't capture pointer events causing hover flicker */
+.attach-btn svg,
+.send-btn svg {
   pointer-events: none;
 }
 
-/* Helper text below the input, when sending is blocked due to no attachments */
+/* Helper text below the input, when sending is blocked due to no attachments/context */
 .helper-text {
   padding-left: 12px;
   font-size: 12.5px;
@@ -271,7 +315,7 @@
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: 44px;
     border-radius: 22px;
-    padding: 10px calc(var(--space-4) + 36px) 10px var(--space-4);
+    padding: 10px calc(var(--space-4) + 76px) 10px var(--space-4);
     background: #232935;
   }
 
@@ -293,6 +337,7 @@
 @media (prefers-reduced-motion: reduce) {
   .chat-textarea,
   .attach-btn,
+  .send-btn,
   .attachments-bar,
   .attachment-remove-btn {
     transition: none;
