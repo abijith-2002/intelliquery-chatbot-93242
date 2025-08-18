@@ -127,9 +127,18 @@ function ChatInput({
   };
 
   // Validate and prepare selected files; call parent with normalized attachments
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+
+    // Helper to read a file as text using FileReader
+    const readFileAsText = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(reader.error || new Error('Failed to read file.'));
+        reader.readAsText(file);
+      });
 
     // Validate selection
     const currentCount = Array.isArray(attachments) ? attachments.length : 0;
@@ -160,6 +169,25 @@ function ChatInput({
         // silently skip duplicate
         continue;
       }
+
+      // If JSON file, pre-parse to detect syntax errors and intercept upload if invalid
+      if (ext === 'json') {
+        try {
+          const text = await readFileAsText(f);
+          try {
+            JSON.parse(text);
+          } catch (parseErr) {
+            const reason = parseErr && parseErr.message ? parseErr.message : 'Unknown JSON parse error';
+            rejectedMessages.push(`Invalid JSON in "${f.name}": ${reason}`);
+            continue;
+          }
+        } catch (readErr) {
+          const reason = readErr && readErr.message ? readErr.message : 'Unable to read file';
+          rejectedMessages.push(`Could not read "${f.name}" for validation: ${reason}`);
+          continue;
+        }
+      }
+
       valid.push({ file: f, id, name: f.name, size: f.size, ext });
     }
 
