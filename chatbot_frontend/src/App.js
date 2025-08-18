@@ -655,17 +655,75 @@ function App() {
             query: trimmedInput,
           }),
         });
+
+        // Robust HTTP error handling with informative details when available
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `HTTP ${response.status}: ${response.statusText}\n${errorText}`
-          );
+          let detail = "";
+          try {
+            const ct = response.headers.get("Content-Type") || "";
+            if (ct.includes("application/json")) {
+              const errJson = await response.json();
+              if (typeof errJson?.detail === "string") {
+                detail = errJson.detail;
+              } else if (errJson) {
+                detail = JSON.stringify(errJson);
+              }
+            } else {
+              detail = await response.text();
+            }
+          } catch {
+            // ignore parse errors
+          }
+          const extras = detail ? `: ${detail}` : "";
+          throw new Error(`Chat request failed (HTTP ${response.status})${extras}`);
         }
-        const data = await response.json();
+
+        // Parse response supporting the new { answer: string } format while remaining backward-compatible.
+        let answerText = "";
+        try {
+          const contentType = response.headers.get("Content-Type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await response.json();
+            if (data && typeof data.answer === "string") {
+              answerText = data.answer;
+            } else if (typeof data.gemini_answer === "string") {
+              // Backward compatibility with legacy format
+              answerText = data.gemini_answer;
+            } else if (typeof data === "string") {
+              // Some servers may return plain string as JSON
+              answerText = data;
+            }
+          } else {
+            // Fallback: try text, then attempt JSON parse
+            const textBody = await response.text();
+            try {
+              const parsed = JSON.parse(textBody);
+              if (parsed && typeof parsed.answer === "string") {
+                answerText = parsed.answer;
+              } else if (typeof parsed.gemini_answer === "string") {
+                answerText = parsed.gemini_answer;
+              } else if (typeof parsed === "string") {
+                answerText = parsed;
+              } else {
+                answerText = textBody;
+              }
+            } catch {
+              answerText = textBody;
+            }
+          }
+        } catch {
+          // Safe default on parse failure
+          answerText = "";
+        }
+
+        if (!answerText || answerText.trim().length === 0) {
+          answerText = "No answer available.";
+        }
+
         const assistantMessage = {
           role: "assistant",
-          rag_answer: data.rag_answer || "No knowledge base response available",
-          gemini_answer: data.gemini_answer || "No Gemini response available",
+          // Display only Gemini's (final) answer
+          gemini_answer: answerText,
           timestamp: Date.now(),
         };
 
