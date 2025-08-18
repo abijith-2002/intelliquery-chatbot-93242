@@ -164,30 +164,59 @@ function ChatInput({
       {/* Attachment chips row */}
       {Array.isArray(attachments) && attachments.length > 0 && (
         <div className="attachments-bar" aria-live="polite">
-          {attachments.map(att => (
-            <div key={att.id} className="attachment-chip" title={`${att.name} (${formatBytes(att.size)})`}>
-              <span className="attachment-icon" aria-hidden="true">
-                {/* Minimal file icon */}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-                  <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <span className="attachment-name" aria-label="File name">{att.name}</span>
-              <span className="attachment-size" aria-label="File size">{formatBytes(att.size)}</span>
-              {typeof onRemoveAttachment === 'function' && (
-                <button
-                  type="button"
-                  className="attachment-remove-btn"
-                  onClick={() => onRemoveAttachment(att.id)}
-                  aria-label={`Remove ${att.name}`}
-                  title="Remove"
+          {attachments.map(att => {
+            const status = att.status || 'queued';
+            const statusClass = status === 'success' ? 'success' : status === 'error' ? 'error' : status === 'uploading' ? 'uploading' : '';
+            return (
+              <div
+                key={att.id}
+                className={`attachment-chip ${statusClass}`}
+                title={`${att.name} (${formatBytes(att.size)})${att.error ? ' • ' + att.error : ''}`}
+              >
+                <span className="attachment-icon" aria-hidden="true">
+                  {/* Minimal file icon */}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                    <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.6" />
+                    <path d="M14 3v5h5" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                </span>
+                <span className="attachment-name" aria-label="File name">{att.name}</span>
+                <span className="attachment-size" aria-label="File size">{formatBytes(att.size)}</span>
+
+                {/* Status indicator */}
+                <span
+                  className={`attachment-status ${statusClass}`}
+                  aria-label={status === 'success' ? 'Upload successful' : status === 'error' ? 'Upload failed' : status === 'uploading' ? 'Uploading' : 'Queued'}
+                  title={att.error ? att.error : status === 'success' ? 'Uploaded' : status === 'uploading' ? 'Uploading...' : 'Queued'}
                 >
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
+                  {status === 'success' ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                      <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : status === 'error' ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                      <path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : status === 'uploading' ? (
+                    <span className="spinner" aria-hidden="true" />
+                  ) : null}
+                </span>
+
+                {typeof onRemoveAttachment === 'function' && (
+                  <button
+                    type="button"
+                    className="attachment-remove-btn"
+                    onClick={() => onRemoveAttachment(att.id)}
+                    aria-label={`Remove ${att.name}`}
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

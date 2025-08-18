@@ -1,0 +1,54 @@
+.contextbar-wrapper {
+  position: sticky;
+  top: 60px; /* below header height */
+  z-index: 9;
+  background: transparent;
+}
+
+.contextbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 0 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.16);
+}
+
+.contextbar-icon {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.contextbar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-primary);
+}
+
+.contextbar-line {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.contextbar-line.subtle {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+
+@media (max-width: 768px) {
+  .contextbar {
+    margin: 0 12px;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .contextbar-line {
+    font-size: 13px;
+  }
+  .contextbar-line.subtle {
+    font-size: 12px;
+  }
+}

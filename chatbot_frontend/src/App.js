@@ -8,6 +8,8 @@ import AuthPage from './components/AuthPage';
 import DashboardPage from './components/DashboardPage';
 import "./App.css";
 import ModalDialog from './components/ModalDialog';
+import NotificationToaster from './components/NotificationToaster';
+import ContextInfoBar from './components/ContextInfoBar';
 
 /**
  * Knowledge Chat Frontend
@@ -125,6 +127,21 @@ function App() {
   const [retryableMessage, setRetryableMessage] = useState(null);
   // New: attachments selected by the user (metadata only)
   const [attachments, setAttachments] = useState([]);
+  // Toast notifications
+  const [notifications, setNotifications] = useState([]);
+  // Toast helpers
+  const dismissToast = useCallback((id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const pushToast = useCallback((message, type = 'info', ttl = 4500) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setNotifications((prev) => [...prev, { id, type, message }]);
+    window.setTimeout(() => dismissToast(id), ttl);
+  }, [dismissToast]);
+
+  // Session context stats map: { [sessionId]: { totalChars, filesCount, lastUploadedAt, lastFilesProcessed, lastMessage } }
+  const [contextBySession, setContextBySession] = useState({});
   const chatEndRef = useRef(null);
 
   const sessionId = useRef(activeSessionId || generateSessionId());
@@ -411,47 +428,105 @@ function App() {
 
   // PUBLIC_INTERFACE
   /**
-   * Handle files selected from ChatInput. Performs client-side validation:
-   * - Restrict to .pdf, .txt, .docx, .xlsx
-   * - Max 10MB per file
-   * - Up to 5 attachments total
-   * Displays errors via ErrorMessage component.
+   * Handle files selected from ChatInput.
+   * Immediately uploads files to the backend /chat/upload-context and shows per-file status via chips.
    * @param {File[]} files
    */
   const handleFilesSelected = useCallback((files) => {
     if (!Array.isArray(files) || files.length === 0) return;
 
-    const ALLOWED = new Set(['pdf','txt','docx','xlsx']);
-    const MAX_SIZE = 10 * 1024 * 1024;
-    const MAX_ATTACH = 5;
-
     const current = Array.isArray(attachments) ? attachments.slice() : [];
-    const remaining = Math.max(0, MAX_ATTACH - current.length);
 
-    const queue = files.slice(0, remaining);
-    const next = [];
-    const seen = new Set(current.map(a => a.id));
-
-    for (const f of queue) {
+    // Prepare attachments with uploading status
+    const prepared = files.map((f) => {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
       const id = `${f.name}__${f.size}__${f.lastModified}`;
-      if (!ALLOWED.has(ext)) {
-        setError(`Unsupported file type: "${f.name}". Allowed types: .pdf, .txt, .docx, .xlsx`);
-        continue;
-      }
-      if (f.size > MAX_SIZE) {
-        setError(`"${f.name}" is too large. Max size is 10 MB.`);
-        continue;
-      }
-      if (seen.has(id)) continue;
-      next.push({ id, name: f.name, size: f.size, ext, file: f });
-      seen.add(id);
-    }
+      return { id, name: f.name, size: f.size, ext, file: f, status: 'uploading' };
+    });
 
-    if (next.length > 0) {
-      setAttachments(current.concat(next));
-    }
-  }, [attachments]);
+    // Show chips as uploading
+    setAttachments(current.concat(prepared));
+
+    // Perform upload as a batch
+    (async () => {
+      try {
+        const formData = new FormData();
+        formData.append('session_id', sessionId.current);
+        prepared.forEach((p) => formData.append('files', p.file));
+
+        const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
+        const res = await fetch(uploadEndpoint, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          throw new Error(`Upload failed (HTTP ${res.status}): ${t || res.statusText}`);
+        }
+
+        const data = await res.json();
+        const filesProcessed = Array.isArray(data.files_processed) ? data.files_processed : [];
+        const byName = new Map(filesProcessed.map((fp) => [fp.filename, fp]));
+
+        // Update per-file status
+        setAttachments((prev) =>
+          prev.map((att) => {
+            const inBatch = prepared.find((p) => p.id === att.id);
+            if (!inBatch) return att;
+            const result = byName.get(att.name);
+            if (!result) return { ...att, status: 'error', error: 'No result received for this file' };
+            if (result.error) return { ...att, status: 'error', error: result.error };
+            return { ...att, status: 'success' };
+          })
+        );
+
+        // Toasts
+        const successCount = filesProcessed.filter((f) => !f.error).length;
+        const errorCount = filesProcessed.filter((f) => !!f.error).length;
+        if (successCount > 0) {
+          pushToast(`${successCount} file${successCount === 1 ? '' : 's'} uploaded successfully`, 'success');
+        }
+        if (errorCount > 0) {
+          pushToast(`${errorCount} file${errorCount === 1 ? '' : 's'} failed to upload`, 'error');
+        }
+
+        // Update session context stats
+        setContextBySession((prev) => {
+          const existing = prev[sessionId.current] || { totalChars: 0, filesCount: 0 };
+          const addedChars = typeof data.total_chars === 'number' ? data.total_chars : 0;
+          const addedFiles = filesProcessed.filter((f) => !f.error).length;
+          const next = {
+            totalChars: (existing.totalChars || 0) + addedChars,
+            filesCount: (existing.filesCount || 0) + addedFiles,
+            lastUploadedAt: Date.now(),
+            lastFilesProcessed: filesProcessed,
+            lastMessage: data.message || '',
+          };
+          return { ...prev, [sessionId.current]: next };
+        });
+
+        // Clear uploaded chips after a short delay (context is stored server-side)
+        window.setTimeout(() => {
+          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
+        }, 1500);
+      } catch (err) {
+        // Mark prepared attachments as error
+        setAttachments((prev) =>
+          prev.map((att) =>
+            prepared.some((p) => p.id === att.id)
+              ? { ...att, status: 'error', error: err.message || 'Upload failed' }
+              : att
+          )
+        );
+        pushToast('File upload failed. Please try again.', 'error');
+        // Auto-clear failed chips after delay
+        window.setTimeout(() => {
+          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
+        }, 2500);
+      }
+    })();
+  }, [attachments, API_BASE_URL, pushToast]);
 
   // PUBLIC_INTERFACE
   /**
@@ -569,8 +644,7 @@ function App() {
 
         setMessages((prevMessages) => [...prevMessages, assistantMessage]);
         setRetryableMessage(null);
-        // Clear attachments after successful send (once backend integration is added, upload will happen before this)
-        setAttachments([]);
+        // Attachments are managed by the upload flow and cleared after upload.
 
         // If a title was generated, update chatSessions (and sync to localStorage)
         if (firstMsg && generatedTitle) {
@@ -677,6 +751,8 @@ function App() {
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isSidebarOpen={sidebarOpen}
           />
+          {/* Context info bar reminding users their uploaded files are used in answers */}
+          <ContextInfoBar context={contextBySession[activeSessionId]} />
           <main className="chat-main">
             <section
               className="chat-area"
@@ -748,6 +824,9 @@ function App() {
             onConfirm={handleDialogConfirm}
             onClose={handleDialogCancel}
           />
+
+          {/* Toast notifications */}
+          <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
         </div>
       </div>
     );
