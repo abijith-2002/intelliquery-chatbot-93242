@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import './ChatInput.css';
+import MinimalAttachmentIcon from './icons/MinimalAttachmentIcon';
 
 // Allowed file types and constraints
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx']);
@@ -254,11 +255,8 @@ function ChatInput({
           aria-label="Attach files"
           title="Attach files (.pdf, .txt, .docx, .xlsx)"
         >
-          {/* paperclip icon */}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-            <path d="M21 7L10 18a5 5 0 0 1-7-7l11-11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 9L8 20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {/* Minimal line icon (paperclip) */}
+          <MinimalAttachmentIcon size={18} />
         </button>
       </div>
     </div>
