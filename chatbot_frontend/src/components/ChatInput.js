@@ -2,8 +2,10 @@ import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import './ChatInput.css';
 import MinimalAttachmentIcon from './icons/MinimalAttachmentIcon';
 
-// Allowed file types and constraints
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx']);
+/* Allowed file types and constraints
+ * Now supports: .pdf, .txt, .docx, .xlsx, .json
+ */
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx', 'json']);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_ATTACHMENTS = 5;
 
@@ -94,7 +96,7 @@ function ChatInput({
     autoResize();
   }, [autoResize]);
 
-  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
+  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx,.json,application/json', []);
   const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
   const contextAvailable = !!hasContext;
   const canChat = hasAttachments || contextAvailable;
@@ -145,7 +147,7 @@ function ChatInput({
     for (const f of files) {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
       if (!ALLOWED_EXTENSIONS.has(ext)) {
-        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx`);
+        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx, .json`);
         continue;
       }
       if (f.size > MAX_FILE_SIZE) {
@@ -293,7 +295,7 @@ function ChatInput({
           onClick={handleAttachClick}
           disabled={disabled}
           aria-label="Attach files"
-          title="Attach files (.pdf, .txt, .docx, .xlsx)"
+          title="Attach files (.pdf, .txt, .docx, .xlsx, .json)"
         >
           {/* Minimal line icon (paperclip) */}
           <MinimalAttachmentIcon size={18} />
@@ -317,7 +319,7 @@ function ChatInput({
       {/* Helper text when sending is blocked due to no attachments/context */}
       {!disabled && !canChat && (
         <div id={helperId} className="helper-text" aria-live="polite">
-          Attach a .pdf, .txt, .docx, or .xlsx to enable sending.
+          Attach a .pdf, .txt, .docx, .xlsx, or .json to enable sending.
         </div>
       )}
     </div>
