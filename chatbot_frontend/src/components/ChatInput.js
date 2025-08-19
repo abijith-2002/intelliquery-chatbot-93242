@@ -255,8 +255,8 @@ function ChatInput({
           aria-label="Attach files"
           title="Attach files (.pdf, .txt, .docx, .xlsx)"
         >
-          {/* Minimal outline paperclip icon */}
-          <MinimalPaperclipIcon size={18} />
+          {/* Minimal outline paperclip icon (centered in circular box) */}
+          <MinimalPaperclipIcon size={20} className="attach-icon" />
         </button>
       </div>
     </div>

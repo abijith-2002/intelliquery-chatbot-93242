@@ -203,23 +203,42 @@
   position: absolute;
   right: 8px;
   bottom: 8px;
+
+  /* Force a perfect circle hit area */
   width: 36px;
   height: 36px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
+  line-height: 0; /* remove inline spacing */
+  padding: 0;
+
+  /* Visual styling */
   background: transparent;
   color: var(--text-secondary);
-  border: 1.5px solid transparent;
+  border: 1px solid var(--border-subtle);
+
+  /* Center content mathematically */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  /* Interaction + a11y */
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
   outline: none;
 }
 
 .attach-btn:hover {
-  background: transparent;
+  background: var(--overlay-light);
   color: var(--text-primary);
   border-color: var(--border-subtle);
+}
+
+.attach-btn:active {
+  background: var(--overlay-medium);
 }
 
 .attach-btn:focus-visible {
@@ -231,6 +250,13 @@
 .attach-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Ensure the icon is centered visually inside the circular box */
+.attach-btn .attach-icon,
+.attach-btn svg {
+  display: block;          /* remove baseline/descender space */
+  pointer-events: none;    /* clicks go to the button */
 }
 
 /* Responsive Design - Mobile */
