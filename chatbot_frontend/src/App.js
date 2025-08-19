@@ -593,6 +593,11 @@ function App() {
       e.preventDefault();
       const trimmedInput = input.trim();
       if (!trimmedInput || isLoading) return;
+      const hasUploaded = (contextBySession[activeSessionId]?.filesCount || 0) > 0;
+      if (!hasUploaded) {
+        try { pushToast('Please upload at least one file before sending a message.', 'info'); } catch (e) {}
+        return;
+      }
       const userMessage = {
         role: "user",
         query: trimmedInput,
@@ -765,7 +770,7 @@ function App() {
       }
     },
     // Note: added chatSessions (must be stable due to setChatSessions use)
-    [input, isLoading, messages, activeSessionId, chatSessions]
+    [input, isLoading, messages, activeSessionId, chatSessions, contextBySession, pushToast]
   );
 
   const handleRetry = useCallback(() => {
@@ -819,6 +824,7 @@ function App() {
 
   // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
+    const hasUploadedContext = (contextBySession[activeSessionId]?.filesCount || 0) > 0;
     return (
       <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
         <Sidebar
@@ -885,8 +891,10 @@ function App() {
             onChange={handleInputChange}
             onSubmit={handleSendMessage}
             disabled={isLoading}
+            requiresUpload={!hasUploadedContext}
+            onBlockedSend={() => pushToast('Please upload at least one file before sending a message.', 'info')}
             placeholder={
-              isLoading ? "Processing your message..." : "Type your message..."
+              isLoading ? "Processing your message..." : (hasUploadedContext ? "Type your message..." : "Upload a file to enable sending...")
             }
             attachments={attachments}
             onFilesSelected={handleFilesSelected}

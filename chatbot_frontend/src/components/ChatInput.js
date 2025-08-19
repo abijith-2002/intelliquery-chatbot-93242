@@ -29,18 +29,21 @@ function makeAttachmentId(file) {
  * - Attachments bar with removable chips
  * - Hidden <input type="file" /> and "Attach" button (paperclip)
  * - Auto-resizing textarea (Enter to send, Shift+Enter for newline)
+ * - Explicit "Send" button which is disabled unless conditions are met
  *
  * Props:
  * @param {Object} props - Component props
  * @param {string} props.value - Current input value
  * @param {Function} props.onChange - Input change handler
- * @param {Function} props.onSubmit - Submit handler (called on Enter key)
- * @param {boolean} props.disabled - Whether input is disabled
+ * @param {Function} props.onSubmit - Submit handler (called on Enter key or Send button)
+ * @param {boolean} props.disabled - Whether input is disabled (e.g., while loading)
  * @param {string} [props.placeholder] - Placeholder text
- * @param {Array<{id: string, name: string, size: number, ext: string}>} [props.attachments] - Selected attachments
+ * @param {Array<{id: string, name: string, size: number, ext: string, status?: string, error?: string}>} [props.attachments] - Selected attachments
  * @param {Function} [props.onFilesSelected] - Handler(files: FileList|Array<File>) after validation; invalid files trigger onValidationError
  * @param {Function} [props.onRemoveAttachment] - Handler(id: string) to remove a specific attachment
  * @param {Function} [props.onValidationError] - Handler(message: string) for validation errors
+ * @param {boolean} [props.requiresUpload=false] - If true, sending is blocked until at least one file has been uploaded
+ * @param {Function} [props.onBlockedSend] - Handler(message: string) called when user attempts to send without upload
  * @returns {JSX.Element} ChatInput component
  */
 function ChatInput({
@@ -53,6 +56,8 @@ function ChatInput({
   onFilesSelected,
   onRemoveAttachment,
   onValidationError,
+  requiresUpload = false,
+  onBlockedSend,
 }) {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -87,6 +92,16 @@ function ChatInput({
     autoResize();
   }, [autoResize]);
 
+  // Helper to notify user when sending is blocked
+  const notifyBlockedSend = useCallback(() => {
+    const msg = 'Please upload at least one file before sending a message.';
+    if (typeof onBlockedSend === 'function') {
+      onBlockedSend(msg);
+    } else if (typeof onValidationError === 'function') {
+      onValidationError(msg);
+    }
+  }, [onBlockedSend, onValidationError]);
+
   // PUBLIC_INTERFACE
   /**
    * Handle keyboard shortcuts
@@ -95,7 +110,12 @@ function ChatInput({
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!disabled && value.trim()) {
+      if (disabled) return;
+      if (requiresUpload) {
+        notifyBlockedSend();
+        return;
+      }
+      if (value.trim()) {
         onSubmit(e);
       }
     }
@@ -160,6 +180,20 @@ function ChatInput({
     }
   };
 
+  const canSendNow = !disabled && Boolean(value.trim()) && !requiresUpload;
+
+  const handleSendClick = (e) => {
+    e.preventDefault();
+    if (disabled) return;
+    if (requiresUpload) {
+      notifyBlockedSend();
+      return;
+    }
+    if (value.trim()) {
+      onSubmit(e);
+    }
+  };
+
   return (
     <div className="chat-input-container" role="group" aria-label="Chat input with attachments">
       {/* Attachment chips row */}
@@ -221,7 +255,7 @@ function ChatInput({
         </div>
       )}
 
-      {/* Textarea and attach button */}
+      {/* Textarea and action buttons */}
       <div className="input-row">
         <textarea
           ref={textareaRef}
@@ -236,6 +270,7 @@ function ChatInput({
           disabled={disabled}
           aria-label="Type your message"
           aria-multiline="true"
+          aria-describedby={requiresUpload ? 'upload-requirement-hint' : undefined}
         />
         <input
           ref={fileInputRef}
@@ -255,10 +290,30 @@ function ChatInput({
           aria-label="Attach files"
           title="Attach files (.pdf, .txt, .docx, .xlsx)"
         >
-          {/* Minimal outline paperclip icon (centered in circular box) */}
           <MinimalPaperclipIcon size={20} className="attach-icon" />
         </button>
+
+        <button
+          type="button"
+          className={`send-btn ${canSendNow ? '' : 'disabled'}`}
+          onClick={handleSendClick}
+          disabled={!canSendNow}
+          aria-label={requiresUpload ? 'Upload a file to enable sending' : 'Send message'}
+          title={requiresUpload ? 'Upload a file to enable sending' : 'Send'}
+        >
+          {/* Minimal send icon (paper plane) */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+            <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </button>
       </div>
+
+      {requiresUpload && (
+        <div id="upload-requirement-hint" className="send-hint" role="note" aria-live="polite">
+          Upload at least one file to send a message.
+        </div>
+      )}
     </div>
   );
 }
