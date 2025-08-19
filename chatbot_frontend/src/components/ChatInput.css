@@ -146,7 +146,7 @@
   border-radius: 24px; /* Pill */
   border: 2px solid var(--border-color);
   background: #232935; /* Opaque dark */
-  padding: 12px calc(var(--space-5) + 38px) 12px var(--space-5); /* extra right padding for attach button */
+  padding: 12px calc(var(--space-5) + 38px + 42px) 12px var(--space-5); /* extra right padding for attach + send buttons */
   font-size: var(--font-size-base);
   font-family: var(--font-family-primary);
   color: var(--text-primary);
@@ -201,18 +201,35 @@
 /* Attach button (paperclip), positioned inside the input row */
 .attach-btn {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  /* Force a perfect circle hit area */
+  width: 36px;
+  height: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  line-height: 0; /* remove inline spacing */
+  padding: 0;
+
+  /* Visual styling */
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid transparent;
+  border: 1px solid var(--border-subtle);
+
+  /* Center content mathematically */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+
+  /* Interaction + a11y */
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  outline: none;
 }
 
 .attach-btn:hover {
@@ -221,9 +238,87 @@
   border-color: var(--border-subtle);
 }
 
+.attach-btn:active {
+  background: var(--overlay-medium);
+}
+
+.attach-btn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-color: var(--accent-blue);
+}
+
 .attach-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Ensure the icon is centered visually inside the circular box */
+.attach-btn .attach-icon,
+.attach-btn svg {
+  display: block;          /* remove baseline/descender space */
+  pointer-events: none;    /* clicks go to the button */
+}
+
+/* New: Send button */
+.send-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  line-height: 0;
+  padding: 0;
+
+  background: var(--accent-blue, #3b82f6);
+  color: white;
+  border: 1px solid var(--accent-blue, #3b82f6);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.send-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.send-btn:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.send-btn:focus-visible {
+  outline: 2px solid var(--accent-blue, #3b82f6);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+}
+
+.send-btn.disabled,
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--overlay-medium, #2b3240);
+  color: var(--text-secondary);
+  border-color: var(--border-subtle);
+}
+
+/* Hint text below the input when sending is blocked */
+.send-hint {
+  margin-top: 2px;
+  margin-left: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* Responsive Design - Mobile */
@@ -237,7 +332,7 @@
     font-size: 16px; /* Prevent zoom on iOS */
     min-height: 44px;
     border-radius: 22px;
-    padding: 10px calc(var(--space-4) + 36px) 10px var(--space-4);
+    padding: 10px calc(var(--space-4) + 36px + 42px) 10px var(--space-4);
     background: #232935;
   }
 
