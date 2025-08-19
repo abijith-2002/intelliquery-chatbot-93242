@@ -3,7 +3,7 @@ import './ChatInput.css';
 import MinimalPaperclipIcon from './icons/MinimalPaperclipIcon';
 
 // Allowed file types and constraints
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx', 'json']);
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx']);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_ATTACHMENTS = 5;
 
@@ -44,8 +44,6 @@ function makeAttachmentId(file) {
  * @param {Function} [props.onValidationError] - Handler(message: string) for validation errors
  * @param {boolean} [props.requiresUpload=false] - If true, sending is blocked until at least one file has been uploaded
  * @param {Function} [props.onBlockedSend] - Handler(message: string) called when user attempts to send without upload
- * @param {number} [props.citationLimit] - Optional number of supported citation answers for hint text
- * @param {boolean} [props.showJsonCitationsHint=false] - If true, displays a small hint that JSON files and citation answers are supported
  * @returns {JSX.Element} ChatInput component
  */
 function ChatInput({
@@ -60,8 +58,6 @@ function ChatInput({
   onValidationError,
   requiresUpload = false,
   onBlockedSend,
-  citationLimit,
-  showJsonCitationsHint = false,
 }) {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -125,7 +121,7 @@ function ChatInput({
     }
   };
 
-  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx,.json', []);
+  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
 
   // Validate and prepare selected files; call parent with normalized attachments
   const handleFileChange = (e) => {
@@ -148,7 +144,7 @@ function ChatInput({
     for (const f of files) {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
       if (!ALLOWED_EXTENSIONS.has(ext)) {
-        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx, .json`);
+        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx`);
         continue;
       }
       if (f.size > MAX_FILE_SIZE) {
@@ -210,7 +206,7 @@ function ChatInput({
               <div
                 key={att.id}
                 className={`attachment-chip ${statusClass}`}
-                title={`${att.name} (${formatBytes(att.size)})${att.error ? ' \u2022 ' + att.error : ''}`}
+                title={`${att.name} (${formatBytes(att.size)})${att.error ? ' • ' + att.error : ''}`}
               >
                 <span className="attachment-icon" aria-hidden="true">
                   {/* Minimal file icon */}
@@ -250,7 +246,7 @@ function ChatInput({
                     aria-label={`Remove ${att.name}`}
                     title="Remove"
                   >
-                    \u2715
+                    ✕
                   </button>
                 )}
               </div>
@@ -292,7 +288,7 @@ function ChatInput({
           onClick={handleAttachClick}
           disabled={disabled}
           aria-label="Attach files"
-          title="Attach files (.pdf, .txt, .docx, .xlsx, .json)"
+          title="Attach files (.pdf, .txt, .docx, .xlsx)"
         >
           <MinimalPaperclipIcon size={20} className="attach-icon" />
         </button>
@@ -316,12 +312,6 @@ function ChatInput({
       {requiresUpload && (
         <div id="upload-requirement-hint" className="send-hint" role="note" aria-live="polite">
           Upload at least one file to send a message.
-        </div>
-      )}
-
-      {showJsonCitationsHint && (
-        <div className="send-hint" role="note" aria-live="polite">
-          {`JSON files and ${Number.isFinite(citationLimit) ? `${citationLimit} ` : ''}citation answers are now supported.`}
         </div>
       )}
     </div>
