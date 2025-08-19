@@ -202,7 +202,8 @@
 .attach-btn {
   position: absolute;
   right: 8px;
-  bottom: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 
   /* Force a perfect circle hit area */
   width: 36px;
