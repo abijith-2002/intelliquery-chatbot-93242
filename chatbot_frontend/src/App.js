@@ -9,6 +9,7 @@ import DashboardPage from './components/DashboardPage';
 import "./App.css";
 import ModalDialog from './components/ModalDialog';
 import NotificationToaster from './components/NotificationToaster';
+import JsonUploadModal from './components/JsonUploadModal';
 import ContextInfoBar from './components/ContextInfoBar';
 
 /**
@@ -129,6 +130,8 @@ function App() {
   const [attachments, setAttachments] = useState([]);
   // Toast notifications
   const [notifications, setNotifications] = useState([]);
+  // JSON upload modal state
+  const [jsonModalOpen, setJsonModalOpen] = useState(false);
   // Toast helpers
   const dismissToast = useCallback((id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -139,6 +142,54 @@ function App() {
     setNotifications((prev) => [...prev, { id, type, message }]);
     window.setTimeout(() => dismissToast(id), ttl);
   }, [dismissToast]);
+
+  const openJsonModal = useCallback(() => setJsonModalOpen(true), []);
+  const closeJsonModal = useCallback(() => setJsonModalOpen(false), []);
+
+  // PUBLIC_INTERFACE
+  /**
+   * Handle summary from JSON upload endpoint and post an assistant message with a digest.
+   * Updates session-level context stats for JSON uploads.
+   * @param {{ session_id?: string, files_processed?: Array<{filename: string, items?: number, error?: string}>, total_items?: number, message?: string }} summary
+   */
+  const handleJsonUploaded = useCallback((summary) => {
+    try {
+      const filesProcessed = Array.isArray(summary?.files_processed) ? summary.files_processed : [];
+      const okFiles = filesProcessed.filter(f => !f.error);
+      const totalItems = typeof summary?.total_items === 'number'
+        ? summary.total_items
+        : okFiles.reduce((acc, f) => acc + (typeof f.items === 'number' ? f.items : 0), 0);
+
+      const header = okFiles.length === 1
+        ? `JSON context added from 1 file: ${okFiles[0]?.filename || 'file'}.`
+        : `JSON context added from ${okFiles.length} files.`;
+      const bullets = okFiles.slice(0, 3).map(f => `- ${f.filename}${typeof f.items === 'number' ? ` (${f.items} records)` : ''}`).join('\n');
+      const more = okFiles.length > 3 ? `\n- …and ${okFiles.length - 3} more file(s)` : '';
+      const msg = `✅ ${header}\n${bullets ? `\n${bullets}${more}\n` : ''}\n${typeof totalItems === 'number' && totalItems > 0 ? `Total records: ${totalItems}\n` : ''}${summary?.message ? `\n${summary.message}` : ''}\n\nYou can now ask questions about the uploaded JSON data.`;
+
+      setMessages(prev => prev.concat({
+        role: 'assistant',
+        rag_answer: 'JSON upload summary',
+        gemini_answer: msg,
+        timestamp: Date.now(),
+      }));
+
+      // Update context stats for active session
+      setContextBySession(prev => {
+        const existing = prev[sessionId.current] || {};
+        const next = {
+          ...existing,
+          jsonFilesCount: (existing.jsonFilesCount || 0) + okFiles.length,
+          jsonItemsCount: (existing.jsonItemsCount || 0) + (totalItems || 0),
+          lastJsonUploadedAt: Date.now(),
+          lastJsonFilesProcessed: filesProcessed,
+        };
+        return { ...prev, [sessionId.current]: next };
+      });
+    } catch {
+      // ignore non-fatal issues
+    }
+  }, []);
 
   // Session context stats map: { [sessionId]: { totalChars, filesCount, lastUploadedAt, lastFilesProcessed, lastMessage } }
   const [contextBySession, setContextBySession] = useState({});
@@ -841,6 +892,7 @@ function App() {
             onLogout={handleLogout}
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isSidebarOpen={sidebarOpen}
+            onOpenJsonUpload={openJsonModal}
           />
           {/* Context info bar reminding users their uploaded files are used in answers */}
           <ContextInfoBar context={contextBySession[activeSessionId]} />
@@ -920,6 +972,26 @@ function App() {
 
           {/* Toast notifications */}
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
+
+          <JsonUploadModal
+            open={jsonModalOpen}
+            onClose={closeJsonModal}
+            sessionId={sessionId.current}
+            apiBaseUrl={API_BASE_URL}
+            onToast={pushToast}
+            onUploaded={(summary) => {
+              handleJsonUploaded(summary);
+              // Auto-close after success if all items processed without error
+              try {
+                const errors = Array.isArray(summary?.files_processed)
+                  ? summary.files_processed.filter(f => !!f.error).length
+                  : 0;
+                if (errors === 0) {
+                  setTimeout(() => closeJsonModal(), 600);
+                }
+              } catch {}
+            }}
+          />
         </div>
       </div>
     );

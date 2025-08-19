@@ -7,15 +7,17 @@ import MinimalChatIcon from './icons/MinimalChatIcon';
  * - Displays brand with minimal line icon
  * - Optionally renders a minimal sidebar toggle button when provided
  * - Optionally renders a logout button when provided
+ * - Optionally renders an "Upload JSON" button when provided
  *
  * @param {Object} props - Component props
  * @param {Function} [props.onToggleSidebar] - Optional handler to toggle sidebar visibility
  * @param {boolean}  [props.isSidebarOpen] - Optional current state of the sidebar, to reflect icon state
  * @param {Function} [props.onLogout] - Optional logout handler function
+ * @param {Function} [props.onOpenJsonUpload] - Optional handler to open JSON upload modal
  * @returns {JSX.Element} Header component
  */
 // PUBLIC_INTERFACE
-function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
+function Header({ onToggleSidebar, isSidebarOpen, onLogout, onOpenJsonUpload }) {
   /** This is a public function: Header renders the app header with brand and optional actions. */
   return (
     <header className="chat-header" role="banner">
@@ -71,20 +73,35 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
         <h1 className="brand-title">Knowledge Chat</h1>
       </div>
 
-      {onLogout && (
-        <button
-          className="logout-button"
-          onClick={onLogout}
-          type="button"
-          aria-label="Logout"
-          title="Logout"
-        >
-          <span className="logout-icon" role="img" aria-label="Logout Icon">
-            🚪
-          </span>
-          <span className="logout-text">Logout</span>
-        </button>
-      )}
+      <div className="header-actions">
+        {typeof onOpenJsonUpload === 'function' && (
+          <button
+            className="json-upload-button"
+            onClick={onOpenJsonUpload}
+            type="button"
+            aria-label="Upload JSON"
+            title="Upload JSON"
+          >
+            <span className="json-upload-icon" aria-hidden="true">{'{}'}</span>
+            <span className="json-upload-text">Upload JSON</span>
+          </button>
+        )}
+
+        {onLogout && (
+          <button
+            className="logout-button"
+            onClick={onLogout}
+            type="button"
+            aria-label="Logout"
+            title="Logout"
+          >
+            <span className="logout-icon" role="img" aria-label="Logout Icon">
+              \ud83d\udeaa
+            </span>
+            <span className="logout-text">Logout</span>
+          </button>
+        )}
+      </div>
     </header>
   );
 }

@@ -110,6 +110,43 @@
   }
 }
 
+/* Actions container */
+.header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* JSON Upload Button */
+.json-upload-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-primary);
+}
+.json-upload-button:hover {
+  background: var(--overlay-light);
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
+}
+.json-upload-icon {
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  opacity: 0.9;
+}
+.json-upload-text {
+  font-size: var(--font-size-sm);
+}
+
 /* Logout Button */
 .logout-button {
   background: transparent;
@@ -162,6 +199,13 @@
 
 /* Responsive Design - Mobile breakpoint */
 @media (max-width: 768px) {
+  .json-upload-text {
+    display: none;
+  }
+  .json-upload-button {
+    padding: var(--space-1) var(--space-2);
+  }
+
   .logout-button {
     padding: var(--space-1) var(--space-2);
     gap: var(--space-1);
