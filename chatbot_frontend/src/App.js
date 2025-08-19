@@ -9,7 +9,6 @@ import DashboardPage from './components/DashboardPage';
 import "./App.css";
 import ModalDialog from './components/ModalDialog';
 import NotificationToaster from './components/NotificationToaster';
-import JsonUploadModal from './components/JsonUploadModal';
 import ContextInfoBar from './components/ContextInfoBar';
 
 /**
@@ -130,8 +129,6 @@ function App() {
   const [attachments, setAttachments] = useState([]);
   // Toast notifications
   const [notifications, setNotifications] = useState([]);
-  // JSON upload modal state
-  const [jsonModalOpen, setJsonModalOpen] = useState(false);
   // Toast helpers
   const dismissToast = useCallback((id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -143,8 +140,7 @@ function App() {
     window.setTimeout(() => dismissToast(id), ttl);
   }, [dismissToast]);
 
-  const openJsonModal = useCallback(() => setJsonModalOpen(true), []);
-  const closeJsonModal = useCallback(() => setJsonModalOpen(false), []);
+
 
   // PUBLIC_INTERFACE
   /**
@@ -498,113 +494,252 @@ function App() {
     // Show chips as uploading
     setAttachments(current.concat(prepared));
 
-    // Perform upload as a batch
+    // Perform uploads in two batches: non-JSON context files and JSON files
     (async () => {
-      try {
-        const formData = new FormData();
-        formData.append('session_id', sessionId.current);
-        prepared.forEach((p) => formData.append('files', p.file));
+      const docsBatch = prepared.filter(p => p.ext !== 'json');
+      const jsonBatch = prepared.filter(p => p.ext === 'json');
 
-        const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
-        const res = await fetch(uploadEndpoint, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!res.ok) {
-          const t = await res.text().catch(() => '');
-          throw new Error(`Upload failed (HTTP ${res.status}): ${t || res.statusText}`);
-        }
-
-        const data = await res.json();
-        const filesProcessed = Array.isArray(data.files_processed) ? data.files_processed : [];
-        const byName = new Map(filesProcessed.map((fp) => [fp.filename, fp]));
-
-        // Update per-file status
-        setAttachments((prev) =>
-          prev.map((att) => {
-            const inBatch = prepared.find((p) => p.id === att.id);
-            if (!inBatch) return att;
-            const result = byName.get(att.name);
-            if (!result) return { ...att, status: 'error', error: 'No result received for this file' };
-            if (result.error) return { ...att, status: 'error', error: result.error };
-            return { ...att, status: 'success' };
-          })
-        );
-
-        // Toasts
-        const successCount = filesProcessed.filter((f) => !f.error).length;
-        const errorCount = filesProcessed.filter((f) => !!f.error).length;
-        if (successCount > 0) {
-          pushToast(`${successCount} file${successCount === 1 ? '' : 's'} uploaded successfully`, 'success');
-        }
-        if (errorCount > 0) {
-          pushToast(`${errorCount} file${errorCount === 1 ? '' : 's'} failed to upload`, 'error');
-        }
-
-        // Update session context stats
-        setContextBySession((prev) => {
-          const existing = prev[sessionId.current] || { totalChars: 0, filesCount: 0 };
-          const addedChars = typeof data.total_chars === 'number' ? data.total_chars : 0;
-          const addedFiles = filesProcessed.filter((f) => !f.error).length;
-          const next = {
-            totalChars: (existing.totalChars || 0) + addedChars,
-            filesCount: (existing.filesCount || 0) + addedFiles,
-            lastUploadedAt: Date.now(),
-            lastFilesProcessed: filesProcessed,
-            lastMessage: data.message || '',
-          };
-          return { ...prev, [sessionId.current]: next };
-        });
-
-        // Post a contextual assistant message summarizing the uploaded content
+      // 1) Upload non-JSON context files to /chat/upload-context
+      if (docsBatch.length > 0) {
         try {
-          const successful = filesProcessed.filter((f) => !f.error);
-          if (successful.length > 0) {
-            const header = successful.length === 1
-              ? `Context added from 1 file: ${successful[0].filename}`
-              : `Context added from ${successful.length} files`;
-            const bulletCount = Math.min(successful.length, 3);
-            const bullets = successful.slice(0, bulletCount).map((f) => {
-              const preview = typeof f.preview === 'string' ? f.preview.trim() : '';
-              const trimmedPreview = preview.length > 300 ? preview.slice(0, 300) + '…' : preview;
-              const chars = typeof f.content_chars === 'number' ? f.content_chars : 0;
-              return `- ${f.filename} (${chars} chars)\n  Preview: ${trimmedPreview || '(no preview available)'}`;
-            }).join('\n');
-            const moreNote = successful.length > bulletCount ? `\n- …and ${successful.length - bulletCount} more file(s)` : '';
-            const content = `✅ ${header}\n\n${bullets}${moreNote}\n\nYou can now ask questions about these file(s) (e.g., "Summarize the document" or "What are the key points?").`;
-            setMessages((prev) => prev.concat({
-              role: 'assistant',
-              rag_answer: 'Context upload summary',
-              gemini_answer: content,
-              timestamp: Date.now(),
-            }));
-          }
-        } catch (e) {
-          // Non-fatal: ignore summary rendering issues
-        }
+          const formData = new FormData();
+          formData.append('session_id', sessionId.current);
+          docsBatch.forEach((p) => formData.append('files', p.file));
 
-        // Clear uploaded chips after a short delay (context is stored server-side)
-        window.setTimeout(() => {
-          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
-        }, 1500);
-      } catch (err) {
-        // Mark prepared attachments as error
-        setAttachments((prev) =>
-          prev.map((att) =>
-            prepared.some((p) => p.id === att.id)
-              ? { ...att, status: 'error', error: err.message || 'Upload failed' }
-              : att
-          )
-        );
-        pushToast('File upload failed. Please try again.', 'error');
-        // Auto-clear failed chips after delay
-        window.setTimeout(() => {
-          setAttachments((prev) => prev.filter((att) => !prepared.some((p) => p.id === att.id)));
-        }, 2500);
+          const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
+          const res = await fetch(uploadEndpoint, {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const t = await res.text().catch(() => '');
+            throw new Error(`Upload failed (HTTP ${res.status}): ${t || res.statusText}`);
+          }
+
+          const data = await res.json();
+          const filesProcessed = Array.isArray(data.files_processed) ? data.files_processed : [];
+          const byName = new Map(filesProcessed.map((fp) => [fp.filename, fp]));
+
+          // Update per-file status for docs
+          setAttachments((prev) =>
+            prev.map((att) => {
+              const inBatch = docsBatch.find((p) => p.id === att.id);
+              if (!inBatch) return att;
+              const result = byName.get(att.name);
+              if (!result) return { ...att, status: 'error', error: 'No result received for this file' };
+              if (result.error) return { ...att, status: 'error', error: result.error };
+              return { ...att, status: 'success' };
+            })
+          );
+
+          // Toasts
+          const successCount = filesProcessed.filter((f) => !f.error).length;
+          const errorCount = filesProcessed.filter((f) => !!f.error).length;
+          if (successCount > 0) {
+            pushToast(`${successCount} file${successCount === 1 ? '' : 's'} uploaded successfully`, 'success');
+          }
+          if (errorCount > 0) {
+            pushToast(`${errorCount} file${errorCount === 1 ? '' : 's'} failed to upload`, 'error');
+          }
+
+          // Update session context stats for docs
+          setContextBySession((prev) => {
+            const existing = prev[sessionId.current] || { totalChars: 0, filesCount: 0 };
+            const addedChars = typeof data.total_chars === 'number' ? data.total_chars : 0;
+            const addedFiles = filesProcessed.filter((f) => !f.error).length;
+            const next = {
+              totalChars: (existing.totalChars || 0) + addedChars,
+              filesCount: (existing.filesCount || 0) + addedFiles,
+              lastUploadedAt: Date.now(),
+              lastFilesProcessed: filesProcessed,
+              lastMessage: data.message || '',
+              // keep any json counters if present
+              jsonFilesCount: existing.jsonFilesCount || 0,
+              jsonItemsCount: existing.jsonItemsCount || 0,
+              lastJsonUploadedAt: existing.lastJsonUploadedAt,
+              lastJsonFilesProcessed: existing.lastJsonFilesProcessed,
+            };
+            return { ...prev, [sessionId.current]: next };
+          });
+
+          // Post a contextual assistant message summarizing the uploaded content (docs)
+          try {
+            const successful = filesProcessed.filter((f) => !f.error);
+            if (successful.length > 0) {
+              const header = successful.length === 1
+                ? `Context added from 1 file: ${successful[0].filename}`
+                : `Context added from ${successful.length} files`;
+              const bulletCount = Math.min(successful.length, 3);
+              const bullets = successful.slice(0, bulletCount).map((f) => {
+                const preview = typeof f.preview === 'string' ? f.preview.trim() : '';
+                const trimmedPreview = preview.length > 300 ? preview.slice(0, 300) + '…' : preview;
+                const chars = typeof f.content_chars === 'number' ? f.content_chars : 0;
+                return `- ${f.filename} (${chars} chars)\n  Preview: ${trimmedPreview || '(no preview available)'}`;
+              }).join('\n');
+              const moreNote = successful.length > bulletCount ? `\n- …and ${successful.length - bulletCount} more file(s)` : '';
+              const content = `✅ ${header}\n\n${bullets}${moreNote}\n\nYou can now ask questions about these file(s) (e.g., "Summarize the document" or "What are the key points?").`;
+              setMessages((prev) => prev.concat({
+                role: 'assistant',
+                rag_answer: 'Context upload summary',
+                gemini_answer: content,
+                timestamp: Date.now(),
+              }));
+            }
+          } catch {
+            // ignore non-fatal
+          }
+
+          // Clear uploaded doc chips after a short delay (context is stored server-side)
+          window.setTimeout(() => {
+            setAttachments((prev) => prev.filter((att) => !docsBatch.some((p) => p.id === att.id)));
+          }, 1500);
+        } catch (err) {
+          // Mark docs in batch as error
+          setAttachments((prev) =>
+            prev.map((att) =>
+              docsBatch.some((p) => p.id === att.id)
+                ? { ...att, status: 'error', error: err.message || 'Upload failed' }
+                : att
+            )
+          );
+          pushToast('File upload failed. Please try again.', 'error');
+          // Auto-clear failed chips after delay
+          window.setTimeout(() => {
+            setAttachments((prev) => prev.filter((att) => !docsBatch.some((p) => p.id === att.id)));
+          }, 2500);
+        }
+      }
+
+      // 2) Upload JSON files to /chat/upload-json (special handling)
+      if (jsonBatch.length > 0) {
+        try {
+          // Parse JSON files locally to validate and build JSON body
+          const parsedEntries = [];
+          for (const item of jsonBatch) {
+            try {
+              const text = await item.file.text();
+              const data = JSON.parse(text);
+              parsedEntries.push({ filename: item.name, data });
+            } catch (e) {
+              // Mark parse error
+              setAttachments((prev) =>
+                prev.map((att) =>
+                  att.id === item.id ? { ...att, status: 'error', error: 'Invalid JSON format' } : att
+                )
+              );
+            }
+          }
+
+          // If nothing valid to upload after parsing, notify and clear error ones later
+          if (parsedEntries.length === 0) {
+            pushToast('No valid JSON files to upload.', 'info');
+            // Clean up all JSON chips that are not already success
+            window.setTimeout(() => {
+              setAttachments((prev) =>
+                prev.filter((att) => !jsonBatch.some((p) => p.id === att.id))
+              );
+            }, 2000);
+          } else {
+            // Attempt JSON POST first
+            const endpoint = `${API_BASE_URL}/chat/upload-json`;
+            let res = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+              body: JSON.stringify({
+                session_id: sessionId.current,
+                files: parsedEntries,
+              }),
+            });
+
+            // Fallback to multipart if not supported
+            if (!res.ok && (res.status === 404 || res.status === 415)) {
+              const form = new FormData();
+              form.append('session_id', sessionId.current);
+              jsonBatch.forEach((p) => form.append('files', p.file, p.name));
+              res = await fetch(endpoint, { method: 'POST', body: form });
+            }
+
+            if (!res.ok) {
+              let detail = '';
+              try {
+                const ct = res.headers.get('Content-Type') || '';
+                if (ct.includes('application/json')) {
+                  const j = await res.json();
+                  detail = typeof j?.detail === 'string' ? j.detail : JSON.stringify(j);
+                } else {
+                  detail = await res.text();
+                }
+              } catch {}
+              throw new Error(`JSON upload failed (HTTP ${res.status})${detail ? `: ${detail}` : ''}`);
+            }
+
+            let summary = null;
+            try {
+              summary = await res.json();
+            } catch {
+              summary = null;
+            }
+
+            // Update per-file status using response summary when possible
+            if (summary && Array.isArray(summary.files_processed)) {
+              const byName = new Map(summary.files_processed.map(fp => [fp.filename, fp]));
+              setAttachments((prev) =>
+                prev.map((att) => {
+                  const inBatch = jsonBatch.find((p) => p.id === att.id);
+                  if (!inBatch) return att;
+                  const result = byName.get(att.name);
+                  if (!result) return { ...att, status: 'success' };
+                  if (result.error) return { ...att, status: 'error', error: result.error };
+                  return { ...att, status: 'success' };
+                })
+              );
+            } else {
+              // Assume success for JSON batch if no details
+              setAttachments((prev) =>
+                prev.map((att) =>
+                  jsonBatch.some((p) => p.id === att.id) ? { ...att, status: 'success' } : att
+                )
+              );
+            }
+
+            // Toasts based on summary
+            try {
+              const list = Array.isArray(summary?.files_processed) ? summary.files_processed : [];
+              const successCount = list.filter(f => !f.error).length;
+              const errorCount = list.filter(f => f.error).length;
+              if (successCount > 0) pushToast(`${successCount} JSON file${successCount === 1 ? '' : 's'} processed`, 'success');
+              if (errorCount > 0) pushToast(`${errorCount} JSON file${errorCount === 1 ? '' : 's'} failed`, 'error');
+            } catch {}
+
+            // Update higher-level state: assistant message + JSON counters
+            if (summary) {
+              handleJsonUploaded(summary);
+            }
+
+            // Clear JSON chips after a short delay
+            window.setTimeout(() => {
+              setAttachments((prev) => prev.filter((att) => !jsonBatch.some((p) => p.id === att.id)));
+            }, 1500);
+          }
+        } catch (err) {
+          // Mark JSON batch as error
+          setAttachments((prev) =>
+            prev.map((att) =>
+              jsonBatch.some((p) => p.id === att.id)
+                ? { ...att, status: 'error', error: err.message || 'JSON upload failed' }
+                : att
+            )
+          );
+          pushToast('JSON upload failed. Please try again.', 'error');
+          // Auto-clear failed chips after delay
+          window.setTimeout(() => {
+            setAttachments((prev) => prev.filter((att) => !jsonBatch.some((p) => p.id === att.id)));
+          }, 2500);
+        }
       }
     })();
-  }, [attachments, API_BASE_URL, pushToast]);
+  }, [attachments, API_BASE_URL, pushToast, handleJsonUploaded, setContextBySession, setAttachments, setMessages]);
 
   // PUBLIC_INTERFACE
   /**
@@ -875,7 +1010,8 @@ function App() {
 
   // Show chat if at "/chat/:id" (session might not yet exist)
   if (appPath.startsWith("/chat/") && activeSessionId) {
-    const hasUploadedContext = (contextBySession[activeSessionId]?.filesCount || 0) > 0;
+    const hasUploadedContext = ((contextBySession[activeSessionId]?.filesCount || 0) > 0)
+      || ((contextBySession[activeSessionId]?.jsonFilesCount || 0) > 0);
     return (
       <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
         <Sidebar
@@ -892,7 +1028,6 @@ function App() {
             onLogout={handleLogout}
             onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
             isSidebarOpen={sidebarOpen}
-            onOpenJsonUpload={openJsonModal}
           />
           {/* Context info bar reminding users their uploaded files are used in answers */}
           <ContextInfoBar context={contextBySession[activeSessionId]} />
@@ -972,26 +1107,6 @@ function App() {
 
           {/* Toast notifications */}
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
-
-          <JsonUploadModal
-            open={jsonModalOpen}
-            onClose={closeJsonModal}
-            sessionId={sessionId.current}
-            apiBaseUrl={API_BASE_URL}
-            onToast={pushToast}
-            onUploaded={(summary) => {
-              handleJsonUploaded(summary);
-              // Auto-close after success if all items processed without error
-              try {
-                const errors = Array.isArray(summary?.files_processed)
-                  ? summary.files_processed.filter(f => !!f.error).length
-                  : 0;
-                if (errors === 0) {
-                  setTimeout(() => closeJsonModal(), 600);
-                }
-              } catch {}
-            }}
-          />
         </div>
       </div>
     );
