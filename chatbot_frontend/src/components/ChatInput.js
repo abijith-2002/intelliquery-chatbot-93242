@@ -3,7 +3,7 @@ import './ChatInput.css';
 import MinimalPaperclipIcon from './icons/MinimalPaperclipIcon';
 
 // Allowed file types and constraints
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx']);
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'txt', 'docx', 'xlsx', 'json']);
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_ATTACHMENTS = 5;
 
@@ -121,7 +121,7 @@ function ChatInput({
     }
   };
 
-  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx', []);
+  const acceptAttr = useMemo(() => '.pdf,.txt,.docx,.xlsx,.json', []);
 
   // Validate and prepare selected files; call parent with normalized attachments
   const handleFileChange = (e) => {
@@ -144,7 +144,7 @@ function ChatInput({
     for (const f of files) {
       const ext = (f.name.split('.').pop() || '').toLowerCase();
       if (!ALLOWED_EXTENSIONS.has(ext)) {
-        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx`);
+        rejectedMessages.push(`Unsupported file type: "${f.name}". Allowed: .pdf, .txt, .docx, .xlsx, .json`);
         continue;
       }
       if (f.size > MAX_FILE_SIZE) {
@@ -288,7 +288,7 @@ function ChatInput({
           onClick={handleAttachClick}
           disabled={disabled}
           aria-label="Attach files"
-          title="Attach files (.pdf, .txt, .docx, .xlsx)"
+          title="Attach files (.pdf, .txt, .docx, .xlsx, .json)"
         >
           <MinimalPaperclipIcon size={20} className="attach-icon" />
         </button>

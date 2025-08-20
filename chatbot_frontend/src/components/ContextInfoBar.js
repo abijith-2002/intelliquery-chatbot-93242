@@ -50,7 +50,7 @@ function ContextInfoBar({ context }) {
                 Tip: Upload files via the paperclip to provide context. We’ll use them to answer your questions.
               </div>
               <div className="contextbar-line subtle">
-                Supported: PDF, DOCX, XLSX, TXT
+                Supported: PDF, DOCX, XLSX, TXT, JSON
               </div>
             </>
           )}
