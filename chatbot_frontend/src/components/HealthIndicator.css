@@ -1,12 +1,32 @@
 .health-indicator-wrapper {
+  /* Keep it fixed on screen, but away from header actions area to avoid collision
+     with the logout button on the top-right in the header. */
   position: fixed;
-  top: 10px;
-  right: 12px;
-  z-index: 1000;
+  /* Place just below the header height (header is 60px) + spacing */
+  top: 72px; /* 60px header + 12px spacing */
+  /* Slightly inset from the right edge */
+  right: 16px;
+  /* Ensure it's above regular content, but below modals (which use 1100) */
+  z-index: 900;
   display: flex;
   align-items: center;
   gap: 6px;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  /* Add a subtle background and hit area for touch devices */
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: saturate(120%) blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+/* On very small screens, add a bit more right inset to avoid OS gestures */
+@media (max-width: 480px) {
+  .health-indicator-wrapper {
+    right: 12px;
+    top: 68px; /* slightly tighter on mobile */
+    padding: 6px 8px;
+  }
 }
 
 .health-dot {
