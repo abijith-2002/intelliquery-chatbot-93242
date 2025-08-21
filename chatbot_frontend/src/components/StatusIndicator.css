@@ -1,0 +1,56 @@
+.status-indicator-wrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-right: var(--space-2, 8px);
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-secondary, #cbd5e1);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease), border-color var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
+}
+
+.status-indicator:hover {
+  background: var(--overlay-light, rgba(255,255,255,0.06));
+  border-color: var(--border-color, rgba(255,255,255,0.16));
+  color: var(--text-primary, #e5e7eb);
+}
+
+.status-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2) inset;
+}
+
+.status-indicator.online .dot {
+  background: #22c55e; /* green-500 */
+}
+
+.status-indicator.offline .dot {
+  background: #ef4444; /* red-500 */
+}
+
+.status-indicator.unknown .dot {
+  background: #f59e0b; /* amber-500 */
+}
+
+.status-text {
+  user-select: none;
+}
+
+/* High contrast */
+@media (prefers-contrast: high) {
+  .status-indicator {
+    border-width: 2px;
+  }
+}

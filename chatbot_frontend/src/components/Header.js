@@ -1,6 +1,7 @@
 import React from 'react';
 import './Header.css';
 import MinimalChatIcon from './icons/MinimalChatIcon';
+import StatusIndicator from './StatusIndicator';
 
 /**
  * Header component for the Knowledge Chat interface
@@ -71,20 +72,23 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
         <h1 className="brand-title">Knowledge Chat</h1>
       </div>
 
-      {onLogout && (
-        <button
-          className="logout-button"
-          onClick={onLogout}
-          type="button"
-          aria-label="Logout"
-          title="Logout"
-        >
-          <span className="logout-icon" role="img" aria-label="Logout Icon">
-            🚪
-          </span>
-          <span className="logout-text">Logout</span>
-        </button>
-      )}
+      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <StatusIndicator />
+        {onLogout && (
+          <button
+            className="logout-button"
+            onClick={onLogout}
+            type="button"
+            aria-label="Logout"
+            title="Logout"
+          >
+            <span className="logout-icon" role="img" aria-label="Logout Icon">
+              🚪
+            </span>
+            <span className="logout-text">Logout</span>
+          </button>
+        )}
+      </div>
     </header>
   );
 }
