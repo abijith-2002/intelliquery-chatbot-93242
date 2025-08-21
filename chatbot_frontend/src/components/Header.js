@@ -1,6 +1,7 @@
 import React from 'react';
 import './Header.css';
 import MinimalChatIcon from './icons/MinimalChatIcon';
+import OnlineStatus from './OnlineStatus';
 
 /**
  * Header component for the Knowledge Chat interface
@@ -69,6 +70,7 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
           <MinimalChatIcon />
         </div>
         <h1 className="brand-title">Knowledge Chat</h1>
+        <OnlineStatus />
       </div>
 
       {onLogout && (

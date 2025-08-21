@@ -19,6 +19,10 @@
   user-select: none;
 }
 
+.header-brand .online-status {
+  margin-left: var(--space-3);
+}
+
 .chat-icon {
   font-size: 24px; /* 24px × 24px as specified */
   line-height: 1;
