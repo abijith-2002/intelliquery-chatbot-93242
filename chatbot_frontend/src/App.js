@@ -10,6 +10,7 @@ import "./App.css";
 import ModalDialog from './components/ModalDialog';
 import NotificationToaster from './components/NotificationToaster';
 import ContextInfoBar from './components/ContextInfoBar';
+import HealthIndicator from './components/HealthIndicator';
 
 /**
  * Knowledge Chat Frontend
@@ -806,19 +807,27 @@ function App() {
 
   // ======= ROUTING LOGIC =========
   if (!user) {
-    return <AuthPage onAuth={handleAuth} />;
+    return (
+      <>
+        <AuthPage onAuth={handleAuth} />
+        <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
+      </>
+    );
   }
 
   // Show dashboard if at "/dashboard"
   if (appPath === "/dashboard") {
     return (
-      <DashboardPage
-        user={user}
-        onLogout={handleLogout}
-        chats={chatSessions}
-        onStartNewChat={handleStartNewChat}
-        onResumeChat={handleResumeChat}
-      />
+      <>
+        <DashboardPage
+          user={user}
+          onLogout={handleLogout}
+          chats={chatSessions}
+          onStartNewChat={handleStartNewChat}
+          onResumeChat={handleResumeChat}
+        />
+        <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
+      </>
     );
   }
 
@@ -826,6 +835,7 @@ function App() {
   if (appPath.startsWith("/chat/") && activeSessionId) {
     const hasUploadedContext = (contextBySession[activeSessionId]?.filesCount || 0) > 0;
     return (
+      <>
       <div className="App" style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
         <Sidebar
           chats={chatSessions}
@@ -922,6 +932,8 @@ function App() {
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
         </div>
       </div>
+      <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
+      </>
     );
   }
 
