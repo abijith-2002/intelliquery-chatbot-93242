@@ -1,6 +1,7 @@
 import React from 'react';
 import './Header.css';
 import MinimalChatIcon from './icons/MinimalChatIcon';
+import HealthIndicator from './HealthIndicator';
 
 /**
  * Header component for the Knowledge Chat interface
@@ -68,7 +69,12 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
         <div className="chat-icon" role="img" aria-label="App Icon">
           <MinimalChatIcon />
         </div>
-        <h1 className="brand-title">Knowledge Chat</h1>
+        <div className="brand-title-with-health">
+          <h1 className="brand-title">Knowledge Chat</h1>
+          <div className="brand-health">
+            <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
+          </div>
+        </div>
       </div>
 
       {onLogout && (

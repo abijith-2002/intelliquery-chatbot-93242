@@ -20,6 +20,57 @@
   user-select: none;
 }
 
+/* Wrap title and health indicator side by side */
+.brand-title-with-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px; /* space between title and icon */
+}
+
+.brand-health {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* Override HealthIndicator's floating styles when used inside header */
+.brand-health .health-indicator-wrapper {
+  position: static;         /* inline in the header row */
+  top: auto;
+  right: auto;
+  z-index: auto;
+  background: transparent;  /* blend into header */
+  border: none;
+  backdrop-filter: none;
+  padding: 0;
+  gap: 6px;
+}
+
+.brand-health .health-tooltip {
+  display: none; /* hide hover label in tight header area */
+}
+
+.brand-health .health-button {
+  padding: 4px;
+}
+
+.brand-health .health-dot {
+  width: 10px;
+  height: 10px;
+  outline: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Keep layout clean on small screens */
+@media (max-width: 768px) {
+  .brand-title-with-health {
+    gap: 8px;
+  }
+  .brand-health .health-dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
 .chat-icon {
   font-size: 24px; /* 24px × 24px as specified */
   line-height: 1;

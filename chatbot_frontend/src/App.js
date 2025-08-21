@@ -810,7 +810,6 @@ function App() {
     return (
       <>
         <AuthPage onAuth={handleAuth} />
-        <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
       </>
     );
   }
@@ -826,7 +825,6 @@ function App() {
           onStartNewChat={handleStartNewChat}
           onResumeChat={handleResumeChat}
         />
-        <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
       </>
     );
   }
@@ -932,7 +930,6 @@ function App() {
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
         </div>
       </div>
-      <HealthIndicator defaultBaseUrl={process.env.REACT_APP_API_BASE_URL || ''} />
       </>
     );
   }
