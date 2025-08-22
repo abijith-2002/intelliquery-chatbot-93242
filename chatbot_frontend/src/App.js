@@ -30,7 +30,7 @@ import { getApiBaseUrl, apiFetch } from './apiConfig';
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
 const API_BASE_URL = getApiBaseUrl();
-const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
+// Requests should use apiFetch('/chat', ...) so we don't define a static CHAT_ENDPOINT here.
 
 /**
  * Generate or retrieve persistent session ID from localStorage

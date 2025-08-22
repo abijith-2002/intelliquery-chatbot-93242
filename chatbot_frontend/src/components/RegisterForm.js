@@ -16,8 +16,7 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-  const REGISTER_ENDPOINT = `${API_BASE_URL}/register`;
+  // Dynamic endpoint via apiFetch; no static base URL here
 
   // PUBLIC_INTERFACE
   /**
@@ -69,7 +68,8 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
     setLoading(true);
     setApiError("");
     try {
-      const resp = await fetch(REGISTER_ENDPOINT, {
+      const { apiFetch } = await import("../apiConfig");
+      const resp = await apiFetch("/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
