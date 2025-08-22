@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './OnlineStatusIndicator.css';
 import ModalDialog from './ModalDialog';
-import { getApiBase, setApiBase } from '../utils/apiBase';
+import { getApiBase, setApiBase, shouldAskForPersistence } from '../utils/apiBase';
 
 /**
  * PUBLIC_INTERFACE
@@ -78,9 +78,31 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
   const handleClose = useCallback(() => setOpen(false), []);
 
   const handleConfirm = useCallback((value) => {
-    // Normalize and save in session override
+    // Normalize and save with chosen persistence
     const next = (value || '').trim().replace(/\/*$/, '');
-    setApiBase(next);
+    if (!next) {
+      setApiBase('');
+      setCurrentBase('');
+      setPingKey((k) => k + 1);
+      setOpen(false);
+      return;
+    }
+
+    let persist = undefined;
+    try {
+      if (shouldAskForPersistence()) {
+        // Ask once if user wants to keep this for future sessions
+        const yes = window.confirm('Do you want to remember this API URL for future sessions? Click OK to save in your browser, or Cancel to use for this session only.');
+        persist = yes ? 'local' : 'session';
+      } else {
+        // If already had a saved preference, default to session unless user already has local saved
+        persist = 'session';
+      }
+    } catch {
+      persist = 'session';
+    }
+
+    setApiBase(next, { persist });
     setCurrentBase(next);
     // Trigger a re-poll
     setPingKey((k) => k + 1);

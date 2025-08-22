@@ -28,8 +28,6 @@ import ContextInfoBar from './components/ContextInfoBar';
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
 import { getApiBase } from './utils/apiBase';
-const API_BASE_URL = getApiBase();
-const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
  * Generate or retrieve persistent session ID from localStorage
@@ -554,7 +552,7 @@ function App() {
         }, 2500);
       }
     })();
-  }, [attachments, API_BASE_URL, pushToast]);
+  }, [attachments, pushToast]);
 
   // PUBLIC_INTERFACE
   /**
