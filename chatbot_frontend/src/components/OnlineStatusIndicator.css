@@ -19,6 +19,20 @@
   outline-offset: 3px;
 }
 
+/* Inline variant when used inside the header next to the title */
+.brand-with-status .online-indicator {
+  position: static;           /* no fixed positioning in header */
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: none;
+  opacity: 0.9;
+}
+
+.brand-with-status .online-indicator:hover {
+  border-color: rgba(255,255,255,0.75);
+}
+
 /* Simple inline panel centered using fixed position, reusing app design tokens */
 .inline-config-panel {
   position: fixed;

@@ -1,12 +1,14 @@
 import React from 'react';
 import './Header.css';
 import MinimalChatIcon from './icons/MinimalChatIcon';
+import OnlineStatusIndicator from './OnlineStatusIndicator';
 
 /**
  * Header component for the Knowledge Chat interface
  * - Displays brand with minimal line icon
  * - Optionally renders a minimal sidebar toggle button when provided
  * - Optionally renders a logout button when provided
+ * - Shows online status next to the title for quick visibility
  *
  * @param {Object} props - Component props
  * @param {Function} [props.onToggleSidebar] - Optional handler to toggle sidebar visibility
@@ -68,7 +70,11 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
         <div className="chat-icon" role="img" aria-label="App Icon">
           <MinimalChatIcon />
         </div>
-        <h1 className="brand-title">Knowledge Chat</h1>
+        <div className="brand-with-status">
+          <h1 className="brand-title">Knowledge Chat</h1>
+          {/* Inline, compact status dot next to the title */}
+          <OnlineStatusIndicator />
+        </div>
       </div>
 
       {onLogout && (
@@ -80,7 +86,7 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
           title="Logout"
         >
           <span className="logout-icon" role="img" aria-label="Logout Icon">
-            🚪
+            🔒
           </span>
           <span className="logout-text">Logout</span>
         </button>

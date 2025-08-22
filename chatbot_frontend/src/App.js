@@ -921,7 +921,6 @@ function App() {
 
           {/* Toast notifications */}
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
-          <OnlineStatusIndicator />
         </div>
       </div>
     );
