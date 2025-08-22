@@ -2,7 +2,19 @@ import React, { useState } from "react";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
 import Header from "./Header";
+import OnlineStatusIndicator from "./OnlineStatusIndicator";
 import "./AuthPage.css";
+
+/**
+ * Inline styles to position the status indicator fixed at bottom-right
+ * only on the auth (login/signup) pages.
+ */
+const fixedStatusStyle = {
+  position: "fixed",
+  right: "16px",
+  bottom: "16px",
+  zIndex: 1000,
+};
 
 // (In real world you'd persist JWT/session, here we just "emulate" login and pass up the user)
 function AuthPage({ onAuth }) {
@@ -39,6 +51,13 @@ function AuthPage({ onAuth }) {
           />
         )}
       </div>
+
+      {/* Fixed, bottom-right OnlineStatusIndicator (only on auth pages) */}
+      <OnlineStatusIndicator
+        intervalMs={5000}
+        className="auth-fixed-status"
+        style={fixedStatusStyle}
+      />
     </div>
   );
 }
