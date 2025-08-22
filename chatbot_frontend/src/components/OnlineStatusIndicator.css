@@ -3,21 +3,29 @@
   position: fixed;
   right: 12px;
   bottom: 12px;
+
+  /* Use flex to perfectly center the dot and text */
   display: inline-flex;
-  /* Center content vertically and horizontally */
-  align-items: center;
-  justify-content: center;
+  align-items: center;         /* vertical centering */
+  justify-content: center;     /* horizontal centering */
   gap: 8px;
 
-  /* Ensure pill centers its internal content correctly */
+  /* Visuals */
   background: transparent;
   color: var(--text-secondary, #d1d5db);
   border: 1px solid transparent;
   border-radius: 999px; /* pill */
   padding: 6px 10px;
-  /* Add a stable height so text is centered within the pill across fonts */
-  min-height: 28px;
-  line-height: 1; /* normalize */
+
+  /* Normalize vertical metrics for consistent centering */
+  min-height: 28px;            /* ensures a stable pill height */
+  line-height: 1;              /* prevents extra vertical whitespace from fonts */
+  vertical-align: middle;      /* align with surrounding inline content */
+
+  /* Button reset for better alignment across browsers */
+  appearance: none;
+  -webkit-appearance: none;
+
   cursor: pointer;
   z-index: 10000;
   transition: border-color var(--transition-fast, 150ms ease), background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
@@ -34,9 +42,12 @@
   outline-offset: 3px;
 }
 
+/* Dot: ensure it aligns perfectly in the center of the pill */
 .online-indicator-wrap .status-dot {
   width: 10px;
   height: 10px;
+  flex: 0 0 auto;
+  display: block;
   border-radius: 9999px;
   box-shadow: 0 0 0 2px rgba(0,0,0,0.25);
   border: 2px solid rgba(255,255,255,0.6);
@@ -46,18 +57,18 @@
 .online-indicator-wrap.online .status-dot { background: #22c55e; } /* green */
 .online-indicator-wrap.offline .status-dot { background: #ef4444; } /* red */
 
+/* Text: inline-flex to ensure its own line-height doesn't shift centering */
 .online-indicator-wrap .status-text {
   font-size: 12.5px;
-  line-height: 1; /* avoid extra vertical space */
+  line-height: 1;              /* avoid extra vertical space */
   letter-spacing: 0.01em;
 
-  /* Ensure text remains centered in the flex pill */
   display: inline-flex;
-  align-items: center;
+  align-items: center;         /* vertical center of the text line box */
   justify-content: center;
 
-  /* Prevent descender clipping and enforce vertical centering */
-  height: 100%;
+  margin: 0;                   /* normalize */
+  padding: 0;
 }
 
 /* Inline variant when used inside the header next to the title */
@@ -68,12 +79,10 @@
   background: transparent;
   border-color: transparent;
 
-  /* keep content centered when used inline */
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  /* normalize height in inline usage as well */
   min-height: 24px;
   line-height: 1;
 }
