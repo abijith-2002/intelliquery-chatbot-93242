@@ -10,6 +10,8 @@ import "./App.css";
 import ModalDialog from './components/ModalDialog';
 import NotificationToaster from './components/NotificationToaster';
 import ContextInfoBar from './components/ContextInfoBar';
+import OnlineStatusIndicator from './components/OnlineStatusIndicator';
+import { getApiBaseUrl, apiFetch } from './apiConfig';
 
 /**
  * Knowledge Chat Frontend
@@ -27,7 +29,7 @@ import ContextInfoBar from './components/ContextInfoBar';
  *   https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-32892-beta.beta01.cloud.kavia.ai:3001";
+const API_BASE_URL = getApiBaseUrl();
 const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
@@ -454,8 +456,7 @@ function App() {
         formData.append('session_id', sessionId.current);
         prepared.forEach((p) => formData.append('files', p.file));
 
-        const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
-        const res = await fetch(uploadEndpoint, {
+        const res = await apiFetch('/chat/upload-context', {
           method: 'POST',
           body: formData,
         });
@@ -574,7 +575,7 @@ function App() {
   }, []);
 
   // A chat always belongs to the sessionId (active chat)
-  const CHAT_TITLE_ENDPOINT = `${API_BASE_URL}/chat/title`;
+  const CHAT_TITLE_ENDPOINT = `/chat/title`;
 
   /**
    * Returns true if the current messages array is empty—i.e., this is the first user message in a new chat.
@@ -617,7 +618,7 @@ function App() {
       try {
         if (firstMsg) {
           // Call /chat/title with { prompt }
-          const titleRes = await fetch(CHAT_TITLE_ENDPOINT, {
+          const titleRes = await apiFetch(CHAT_TITLE_ENDPOINT, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -649,7 +650,7 @@ function App() {
           }
         }
 
-        const response = await fetch(CHAT_ENDPOINT, {
+        const response = await apiFetch('/chat', {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -920,6 +921,7 @@ function App() {
 
           {/* Toast notifications */}
           <NotificationToaster notifications={notifications} onDismiss={dismissToast} />
+          <OnlineStatusIndicator />
         </div>
       </div>
     );

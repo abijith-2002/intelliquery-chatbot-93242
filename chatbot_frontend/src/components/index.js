@@ -13,3 +13,4 @@ export { default as Sidebar } from './Sidebar';
 export { default as ModalDialog } from './ModalDialog';
 export { default as NotificationToaster } from './NotificationToaster';
 export { default as ContextInfoBar } from './ContextInfoBar';
+export { default as OnlineStatusIndicator } from './OnlineStatusIndicator';
