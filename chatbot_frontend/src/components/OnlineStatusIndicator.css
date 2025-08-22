@@ -5,6 +5,19 @@
   gap: 6px;
 }
 
+.online-status-indicator.clickable {
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background-color var(--transition-fast, 150ms ease);
+}
+
+.online-status-indicator.clickable:hover,
+.online-status-indicator.clickable:focus-visible {
+  background-color: var(--overlay-light, rgba(255,255,255,0.06));
+  outline: none;
+}
+
 .status-dot {
   width: 10px;
   height: 10px;

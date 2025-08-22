@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './OnlineStatusIndicator.css';
+import ModalDialog from './ModalDialog';
+import { getApiBase, setApiBase } from '../utils/apiBase';
 
 /**
  * PUBLIC_INTERFACE
  * OnlineStatusIndicator
  * A minimal, reusable component that periodically checks the backend API root ('/') to determine online status.
- * - Uses REACT_APP_API_BASE_URL as the base URL, defaulting to '' if not provided.
+ * - Uses session-scoped API base via getApiBase() (falls back to REACT_APP_API_BASE_URL).
  * - Polls every `intervalMs` milliseconds (default: 5000ms).
  * - Renders a small circular indicator: green when online, red when offline, with a tooltip title.
+ * - Click the indicator to open a dialog to change the API base URL for the current session.
  *
  * Props:
  * - intervalMs?: number - polling interval in milliseconds (default 5000)
@@ -16,24 +19,25 @@ import './OnlineStatusIndicator.css';
  */
 export default function OnlineStatusIndicator({ intervalMs = 5000, className = '', style = {} }) {
   const [online, setOnline] = useState(null); // null = unknown, true = online, false = offline
+  const [open, setOpen] = useState(false);
+  const [currentBase, setCurrentBase] = useState(getApiBase());
+  const [pingKey, setPingKey] = useState(0); // trigger re-poll on base change
+
+  const pingUrl = useMemo(() => `${(currentBase || '').replace(/\/+$/, '')}/`, [currentBase]);
 
   useEffect(() => {
     let isMounted = true;
     let pollTimer = null;
 
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
-    const url = `${baseUrl.replace(/\/+$/, '')}/`;
-
     const checkStatus = async () => {
       try {
-        const resp = await fetch(url, {
+        const resp = await fetch(pingUrl, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
           },
         });
         if (!isMounted) return;
-        // consider any 2xx as online
         setOnline(resp.ok);
       } catch (e) {
         if (!isMounted) return;
@@ -51,17 +55,67 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
       isMounted = false;
       if (pollTimer) clearInterval(pollTimer);
     };
-  }, [intervalMs]);
+    // Depend on interval and pingUrl so changes to base trigger new polling target
+  }, [intervalMs, pingUrl, pingKey]);
 
   const statusClass =
     online === null ? 'status-unknown' : online ? 'status-online' : 'status-offline';
 
   const title =
-    online === null ? 'Status: unknown' : online ? 'Backend: online' : 'Backend: offline';
+    online === null
+      ? `Status: unknown (${currentBase || 'no base set'})`
+      : online
+      ? `Backend: online (${currentBase || 'no base set'})`
+      : `Backend: offline (${currentBase || 'no base set'})`;
+
+  const handleOpen = useCallback(() => {
+    setCurrentBase(getApiBase());
+    setOpen(true);
+  }, []);
+
+  const handleClose = useCallback(() => setOpen(false), []);
+
+  const handleConfirm = useCallback((value) => {
+    // Normalize and save in session override
+    const next = (value || '').trim().replace(/\/+$/, '');
+    setApiBase(next);
+    setCurrentBase(next);
+    // Trigger a re-poll
+    setPingKey((k) => k + 1);
+    setOpen(false);
+  }, []);
 
   return (
-    <div className={`online-status-indicator ${className}`} style={style} title={title} aria-label={title}>
-      <span className={`status-dot ${statusClass}`} />
-    </div>
+    <>
+      <div
+        className={`online-status-indicator clickable ${className}`}
+        style={style}
+        title={`${title}\nClick to change API base URL`}
+        aria-label={title}
+        role="button"
+        tabIndex={0}
+        onClick={handleOpen}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleOpen();
+          }
+        }}
+      >
+        <span className={`status-dot ${statusClass}`} />
+      </div>
+
+      <ModalDialog
+        open={open}
+        title="Change Backend API Base URL"
+        description="Enter the base URL for the backend API. This will be used for requests in this session only."
+        variant="prompt"
+        defaultValue={currentBase}
+        confirmText="Save"
+        cancelText="Cancel"
+        onConfirm={handleConfirm}
+        onClose={handleClose}
+      />
+    </>
   );
 }
