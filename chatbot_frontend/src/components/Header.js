@@ -1,5 +1,6 @@
 import React from 'react';
 import './Header.css';
+import OnlineStatusIndicator from './OnlineStatusIndicator';
 import MinimalChatIcon from './icons/MinimalChatIcon';
 
 /**
@@ -69,6 +70,10 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
           <MinimalChatIcon />
         </div>
         <h1 className="brand-title">Knowledge Chat</h1>
+      </div>
+
+      <div className="header-actions">
+        <OnlineStatusIndicator intervalMs={5000} />
       </div>
 
       {onLogout && (

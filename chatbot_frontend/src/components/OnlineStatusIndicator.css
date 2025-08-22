@@ -1,0 +1,26 @@
+.online-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+}
+
+.status-online {
+  background-color: #2ecc71; /* green */
+}
+
+.status-offline {
+  background-color: #e74c3c; /* red */
+}
+
+.status-unknown {
+  background-color: #888888; /* grey */
+}
