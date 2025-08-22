@@ -104,9 +104,10 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
           }
         }}
       >
-        <span className={`status-dot ${statusClass}`} />
-        <span className={`status-pill ${statusClass}`} aria-hidden="true">
-          {statusText}
+        {/* Unified pill that contains both the dot and the text */}
+        <span className={`status-pill ${statusClass}`}>
+          <span className="status-dot" aria-hidden="true" />
+          <span className="status-text">{statusText}</span>
         </span>
       </div>
 
