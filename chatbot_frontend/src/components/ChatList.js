@@ -13,12 +13,8 @@ import "./ChatList.css";
 // PUBLIC_INTERFACE
 function ChatList({ chats, onResumeChat }) {
   if (!chats || chats.length === 0) {
-    return (
-      <div className="chatlist-empty">
-        <span className="chatlist-empty-icon">🤖</span>
-        <span>No previous chats yet — Start a new conversation!</span>
-      </div>
-    );
+    // Render nothing for empty state to maintain a blank/minimal area
+    return null;
   }
   // Sort by lastActive descending
   const sortedChats = chats
