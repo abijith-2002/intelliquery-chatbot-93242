@@ -85,7 +85,51 @@ function OnlineStatusIndicator() {
         aria-label={online ? 'Backend online. Click to configure API base URL.' : 'Backend offline. Click to configure API base URL.'}
         title={dotTitle}
       >
-        <span aria-hidden="true" className="status-dot" />
+        {/* SR-only live region for status updates */}
+        <span className="sr-only" aria-live="polite" role="status">
+          {online ? 'Status: Connected' : 'Status: Disconnected'}
+        </span>
+        {/* Swap dot for a clear connected/disconnected line icon */}
+        <span aria-hidden="true" className="status-icon" data-state={online ? 'online' : 'offline'}>
+          {online ? (
+            // Connected: simple chain/link icon
+            <svg
+              className="icon-svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              role="img"
+              aria-label="Connected"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Two small links implying connection */}
+              <path d="M8.5 12a3 3 0 013-3h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12.5 15a3 3 0 01-3 3h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 9l-4 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            // Disconnected: broken link/line icon
+            <svg
+              className="icon-svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              role="img"
+              aria-label="Disconnected"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Broken link segments */}
+              <path d="M7 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M11 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+              <path d="M15 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              {/* small breaks to imply disconnect */}
+              <path d="M10 9l-1-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M14 15l1 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          )}
+        </span>
         <span className="status-text">{online ? 'Online' : 'Offline'}</span>
       </button>
 

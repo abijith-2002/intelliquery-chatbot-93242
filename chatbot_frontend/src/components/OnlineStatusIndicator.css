@@ -42,20 +42,32 @@
   outline-offset: 3px;
 }
 
-/* Dot: ensure it aligns perfectly in the center of the pill */
-.online-indicator-wrap .status-dot {
-  width: 10px;
-  height: 10px;
+/* Icon wrapper: ensure perfect centering */
+.online-indicator-wrap .status-icon {
+  display: inline-flex;
+  align-items: center;       /* vertical centering */
+  justify-content: center;   /* horizontal centering */
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
-  display: block;
-  border-radius: 9999px;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.25);
-  border: 2px solid rgba(255,255,255,0.6);
-  background: #ef4444;
+  color: currentColor;       /* inherits from container */
 }
 
-.online-indicator-wrap.online .status-dot { background: #22c55e; } /* green */
-.online-indicator-wrap.offline .status-dot { background: #ef4444; } /* red */
+/* Fine-tune svg metrics to avoid baseline shifts */
+.online-indicator-wrap .status-icon .icon-svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+}
+
+/* Color cues by state for better clarity and a11y contrast */
+.online-indicator-wrap.online .status-icon {
+  color: #22c55e; /* green for connected */
+}
+.online-indicator-wrap.offline .status-icon {
+  color: #ef4444; /* red for disconnected */
+}
 
 /* Text: inline-flex to ensure its own line-height doesn't shift centering */
 .online-indicator-wrap .status-text {
@@ -92,12 +104,23 @@
   background: rgba(255,255,255,0.04);
 }
 
-.brand-with-status .online-indicator-wrap .status-dot {
-  width: 8px;
-  height: 8px;
-  box-shadow: none;
-  border: 1.8px solid rgba(255,255,255,0.45);
+.brand-with-status .online-indicator-wrap .status-icon {
+  width: 14px;
+  height: 14px;
   opacity: 0.95;
+}
+
+/* Screen-reader only utility for accessible names/live regions */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* Simple inline panel centered using fixed position, reusing app design tokens */
