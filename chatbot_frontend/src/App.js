@@ -856,12 +856,21 @@ function App() {
                 <div className="chat-welcome">
                   <div className="welcome-content">
                     <div className="welcome-icon">💬</div>
-                    <h2 className="welcome-title">
-                      Welcome to Knowledge Chat
+                    <h2 className="welcome-title" aria-live="polite">
+                      {(() => {
+                        // Randomly select one message for the empty state of a new chat
+                        const choices = [
+                          'How can I help today?',
+                          'Let’s get started',
+                          'Ready to dive in',
+                          'Ready to assist',
+                        ];
+                        const idx = Math.floor(Math.random() * choices.length);
+                        return choices[idx];
+                      })()}
                     </h2>
                     <p className="welcome-description">
-                      Ask me anything and I'll provide answers using our
-                      knowledge base and AI-powered insights.
+                      Start by uploading a file for context, then ask your question.
                     </p>
                   </div>
                 </div>
