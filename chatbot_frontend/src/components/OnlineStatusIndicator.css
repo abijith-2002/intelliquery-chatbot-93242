@@ -59,6 +59,7 @@
   width: 14px;
   height: 14px;
   stroke: currentColor;
+  vector-effect: non-scaling-stroke; /* keep stroke crisp when scaled */
 }
 
 /* Color cues by state for better clarity and a11y contrast */

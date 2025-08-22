@@ -89,10 +89,10 @@ function OnlineStatusIndicator() {
         <span className="sr-only" aria-live="polite" role="status">
           {online ? 'Status: Connected' : 'Status: Disconnected'}
         </span>
-        {/* Swap dot for a clear connected/disconnected line icon */}
+        {/* Minimal plug/unplug icon for connected/disconnected */}
         <span aria-hidden="true" className="status-icon" data-state={online ? 'online' : 'offline'}>
           {online ? (
-            // Connected: simple chain/link icon
+            // Connected: minimal plug icon
             <svg
               className="icon-svg"
               width="14"
@@ -103,13 +103,15 @@ function OnlineStatusIndicator() {
               focusable="false"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Two small links implying connection */}
-              <path d="M8.5 12a3 3 0 013-3h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12.5 15a3 3 0 01-3 3h-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M14 9l-4 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              {/* prongs */}
+              <path d="M9 7v3M12 7v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              {/* plug body */}
+              <path d="M7 10h7a0 0 0 0 1 0 0v2a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-2a0 0 0 0 1 0 0h2" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {/* cord */}
+              <path d="M14 13c0 3 3 4 5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           ) : (
-            // Disconnected: broken link/line icon
+            // Disconnected: minimal unplug icon with a small gap
             <svg
               className="icon-svg"
               width="14"
@@ -120,13 +122,17 @@ function OnlineStatusIndicator() {
               focusable="false"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Broken link segments */}
-              <path d="M7 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M11 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-              <path d="M15 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              {/* small breaks to imply disconnect */}
-              <path d="M10 9l-1-1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M14 15l1 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              {/* prongs separated */}
+              <path d="M8.5 7v2.2M12.5 7v2.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              {/* plug body with a center gap to imply unplug */}
+              <path d="M6 10h4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M13.7 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              {/* half bodies */}
+              <path d="M6 10v2a3.5 3.5 0 0 0 3.5 3.5h.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M16 10v2a3.5 3.5 0 0 1-3.5 3.5h-.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              {/* cord with broken segment */}
+              <path d="M13 14.5c.6 1.8 2.6 2.5 4 2.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M18.8 17.2l.2.1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           )}
         </span>
