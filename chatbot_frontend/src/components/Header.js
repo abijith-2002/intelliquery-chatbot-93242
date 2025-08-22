@@ -13,10 +13,11 @@ import MinimalChatIcon from './icons/MinimalChatIcon';
  * @param {Function} [props.onToggleSidebar] - Optional handler to toggle sidebar visibility
  * @param {boolean}  [props.isSidebarOpen] - Optional current state of the sidebar, to reflect icon state
  * @param {Function} [props.onLogout] - Optional logout handler function
+ * @param {boolean}  [props.showStatusInHeader=true] - When false, hide OnlineStatusIndicator in the header.
  * @returns {JSX.Element} Header component
  */
 // PUBLIC_INTERFACE
-function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
+function Header({ onToggleSidebar, isSidebarOpen, onLogout, showStatusInHeader = true }) {
   /** This is a public function: Header renders the app header with brand and optional actions. */
   return (
     <header className="chat-header" role="banner">
@@ -73,7 +74,9 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
       </div>
 
       <div className="header-actions">
-        <OnlineStatusIndicator intervalMs={5000} />
+        {/* Hide OnlineStatusIndicator in header when showStatusInHeader is false
+            (e.g., on login/signup pages where it appears fixed at bottom-right). */}
+        {showStatusInHeader && <OnlineStatusIndicator intervalMs={5000} />}
       </div>
 
       {onLogout && (
@@ -85,7 +88,7 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
           title="Logout"
         >
           <span className="logout-icon" role="img" aria-label="Logout Icon">
-            🚪
+            🔒
           </span>
           <span className="logout-text">Logout</span>
         </button>

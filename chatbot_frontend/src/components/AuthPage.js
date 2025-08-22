@@ -37,7 +37,8 @@ function AuthPage({ onAuth }) {
 
   return (
     <div className="auth-page">
-      <Header />
+      {/* Hide header status indicator on auth screens */}
+      <Header showStatusInHeader={false} />
       <div className="auth-form-container">
         {mode === "register" ? (
           <RegisterForm
