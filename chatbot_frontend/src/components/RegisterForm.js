@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./RegisterForm.css";
+import { getApiBase } from "../utils/apiBase";
 
 // PUBLIC_INTERFACE
 /**
@@ -16,8 +17,10 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-  const REGISTER_ENDPOINT = `${API_BASE_URL}/register`;
+
+  // Build endpoint dynamically using the centralized API base manager
+  const API_BASE_URL = getApiBase();
+  const REGISTER_ENDPOINT = `${API_BASE_URL.replace(/\/*$/, "")}/register`;
 
   // PUBLIC_INTERFACE
   /**
@@ -68,12 +71,15 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
     if (Object.keys(v).length > 0) return;
     setLoading(true);
     setApiError("");
+
     try {
       const resp = await fetch(REGISTER_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        // credentials omitted intentionally; add `credentials: 'include'` if backend sets cookies
       });
+
       if (resp.status === 409) {
         setApiError("Username or email already registered.");
       } else if (resp.status === 400) {
@@ -89,9 +95,15 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
         if (onSuccess) onSuccess(resUser);
       }
     } catch (err) {
-      setApiError("Network error. Try again.");
+      // Provide helpful hint for CORS/network troubleshooting
+      console.error("Register request failed:", err);
+      const base = API_BASE_URL || "(unset)";
+      setApiError(
+        `Network error. Check that the backend is reachable at ${base} and that CORS allows this origin.`
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

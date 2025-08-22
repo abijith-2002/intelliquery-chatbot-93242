@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./LoginForm.css";
+import { getApiBase } from "../utils/apiBase";
 
 // PUBLIC_INTERFACE
 /**
@@ -16,8 +17,10 @@ function LoginForm({ onSuccess, onNavigateRegister }) {
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-  const LOGIN_ENDPOINT = `${API_BASE_URL}/login`;
+
+  // Build endpoint dynamically using the centralized API base manager
+  const API_BASE_URL = getApiBase();
+  const LOGIN_ENDPOINT = `${API_BASE_URL.replace(/\/*$/, "")}/login`;
 
   // PUBLIC_INTERFACE
   /**
@@ -87,7 +90,11 @@ function LoginForm({ onSuccess, onNavigateRegister }) {
         if (onSuccess) onSuccess(resUser);
       }
     } catch (err) {
-      setApiError("Network error. Try again.");
+      console.error("Login request failed:", err);
+      const base = API_BASE_URL || "(unset)";
+      setApiError(
+        `Network error. Check that the backend is reachable at ${base} and that CORS allows this origin.`
+      );
     }
     setLoading(false);
   };
