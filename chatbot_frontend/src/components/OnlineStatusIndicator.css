@@ -4,8 +4,12 @@
   right: 12px;
   bottom: 12px;
   display: inline-flex;
+  /* Center content vertically and horizontally */
   align-items: center;
+  justify-content: center;
   gap: 8px;
+
+  /* Ensure pill centers its internal content correctly */
   background: transparent;
   color: var(--text-secondary, #d1d5db);
   border: 1px solid transparent;
@@ -41,8 +45,13 @@
 
 .online-indicator-wrap .status-text {
   font-size: 12.5px;
-  line-height: 1;
+  line-height: 1; /* avoid extra vertical space */
   letter-spacing: 0.01em;
+
+  /* Ensure text remains centered in the flex pill */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Inline variant when used inside the header next to the title */
@@ -52,6 +61,11 @@
   gap: 6px;
   background: transparent;
   border-color: transparent;
+
+  /* keep content centered when used inline */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-with-status .online-indicator-wrap:hover {
