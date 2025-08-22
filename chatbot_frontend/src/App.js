@@ -858,15 +858,23 @@ function App() {
                     <div className="welcome-icon">💬</div>
                     <h2 className="welcome-title" aria-live="polite">
                       {(() => {
-                        // Randomly select one message for the empty state of a new chat
+                        // Persist a random welcome message per chat session.
+                        // This prevents changes on each input keystroke/re-render.
                         const choices = [
                           'How can I help today?',
                           'Let’s get started',
                           'Ready to dive in',
                           'Ready to assist',
                         ];
-                        const idx = Math.floor(Math.random() * choices.length);
-                        return choices[idx];
+                        // Lazily create a store for per-session welcome messages
+                        if (!App._welcomeBySession) App._welcomeBySession = {};
+                        const store = App._welcomeBySession;
+                        const sid = activeSessionId || sessionId.current || 'default';
+                        if (!store[sid]) {
+                          const idx = Math.floor(Math.random() * choices.length);
+                          store[sid] = choices[idx];
+                        }
+                        return store[sid];
                       })()}
                     </h2>
                     <p className="welcome-description">
