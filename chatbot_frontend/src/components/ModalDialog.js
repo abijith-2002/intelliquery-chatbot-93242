@@ -173,17 +173,17 @@ function ModalDialog({
         {isPrompt && (
           <div className="modal-input-group">
             <label htmlFor="modal-input" className="modal-label">
-              New name
+              Value
             </label>
             <input
               id="modal-input"
               ref={inputRef}
               className="modal-input"
               type="text"
-              maxLength={100}
+              maxLength={200}
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Enter a new chat name"
+              placeholder="Enter value"
               aria-required="true"
             />
           </div>

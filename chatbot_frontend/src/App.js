@@ -27,7 +27,8 @@ import ContextInfoBar from './components/ContextInfoBar';
  *   https://vscode-internal-21843-beta.beta01.cloud.kavia.ai:3001
  * For development, override REACT_APP_API_BASE_URL in .env as needed.
  */
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://vscode-internal-32892-beta.beta01.cloud.kavia.ai:3001";
+import { getApiBase } from './utils/apiBase';
+const API_BASE_URL = getApiBase();
 const CHAT_ENDPOINT = `${API_BASE_URL}/chat`;
 
 /**
@@ -97,7 +98,7 @@ function App() {
     let ignore = false;
     async function fetchBackendChats() {
       try {
-        const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+        const API_BASE_URL = getApiBase();
         // Example: GET /chats if API supports it (skipped for now: design uses localStorage)
         // const res = await fetch(`${API_BASE_URL}/chats`, { credentials: "include" });
         // if (res.ok) {
@@ -454,7 +455,7 @@ function App() {
         formData.append('session_id', sessionId.current);
         prepared.forEach((p) => formData.append('files', p.file));
 
-        const uploadEndpoint = `${API_BASE_URL}/chat/upload-context`;
+        const uploadEndpoint = `${getApiBase()}/chat/upload-context`;
         const res = await fetch(uploadEndpoint, {
           method: 'POST',
           body: formData,
@@ -574,7 +575,7 @@ function App() {
   }, []);
 
   // A chat always belongs to the sessionId (active chat)
-  const CHAT_TITLE_ENDPOINT = `${API_BASE_URL}/chat/title`;
+  const CHAT_TITLE_ENDPOINT = `${getApiBase()}/chat/title`;
 
   /**
    * Returns true if the current messages array is empty—i.e., this is the first user message in a new chat.
@@ -617,7 +618,7 @@ function App() {
       try {
         if (firstMsg) {
           // Call /chat/title with { prompt }
-          const titleRes = await fetch(CHAT_TITLE_ENDPOINT, {
+          const titleRes = await fetch(`${getApiBase()}/chat/title`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -649,7 +650,7 @@ function App() {
           }
         }
 
-        const response = await fetch(CHAT_ENDPOINT, {
+        const response = await fetch(`${getApiBase()}/chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -854,13 +855,29 @@ function App() {
               {messages.length === 0 && !isLoading ? (
                 <div className="chat-welcome">
                   <div className="welcome-content">
-                    <div className="welcome-icon">💬</div>
-                    <h2 className="welcome-title">
-                      Welcome to Knowledge Chat
+                    <h2 className="welcome-title" aria-live="polite">
+                      {(() => {
+                        // Persist a random welcome message per chat session.
+                        // This prevents changes on each input keystroke/re-render.
+                        const choices = [
+                          'How can I help today?',
+                          'Let’s get started',
+                          'Ready to dive in',
+                          'Ready to assist',
+                        ];
+                        // Lazily create a store for per-session welcome messages
+                        if (!App._welcomeBySession) App._welcomeBySession = {};
+                        const store = App._welcomeBySession;
+                        const sid = activeSessionId || sessionId.current || 'default';
+                        if (!store[sid]) {
+                          const idx = Math.floor(Math.random() * choices.length);
+                          store[sid] = choices[idx];
+                        }
+                        return store[sid];
+                      })()}
                     </h2>
                     <p className="welcome-description">
-                      Ask me anything and I'll provide answers using our
-                      knowledge base and AI-powered insights.
+                      Start by uploading a file for context, then ask your question.
                     </p>
                   </div>
                 </div>
@@ -894,7 +911,7 @@ function App() {
             requiresUpload={!hasUploadedContext}
             onBlockedSend={() => pushToast('Please upload at least one file before sending a message.', 'info')}
             placeholder={
-              isLoading ? "Processing your message..." : (hasUploadedContext ? "Type your message..." : "Upload a file to enable sending...")
+              isLoading ? "Processing your message..." : (hasUploadedContext ? "Type your message..." : "Upload a file to proceed")
             }
             attachments={attachments}
             onFilesSelected={handleFilesSelected}

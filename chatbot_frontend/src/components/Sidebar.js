@@ -55,12 +55,7 @@ function Sidebar({ chats, activeSessionId, onSelectChat, onNewChat, isOpen = tru
       </button>
       <div className="sidebar-divider" role="separator" aria-orientation="horizontal" />
       <ul className="sidebar-list" role="listbox" aria-orientation="vertical">
-        {sortedChats.length === 0 && (
-          <div className="chatlist-empty" style={{ margin: "30px 0" }}>
-            <span className="chatlist-empty-icon">🤖</span>
-            <span>No past chats yet.</span>
-          </div>
-        )}
+        {/* Intentionally render nothing for empty state to keep area minimal */}
         {sortedChats.map((chat) => (
           <li
             key={chat.id}

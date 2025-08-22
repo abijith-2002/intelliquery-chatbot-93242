@@ -1,0 +1,99 @@
+.online-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.online-status-indicator.clickable {
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background-color var(--transition-fast, 150ms ease);
+}
+
+/* Unified pill containing dot + text with transparent background and neutral border/text */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px; /* pill shape */
+  background-color: transparent; /* no fill */
+  /* Neutral text and border to fit dark theme */
+  color: var(--text-secondary, #c9c9c9);
+  border: 1.5px solid var(--border-subtle, rgba(136,136,136,0.5));
+  /* Keep minimal flat appearance */
+  box-shadow: none;
+  user-select: none;
+  transition:
+    opacity var(--transition-fast, 150ms ease),
+    border-color var(--transition-fast, 150ms ease),
+    color var(--transition-fast, 150ms ease),
+    background-color var(--transition-fast, 150ms ease);
+}
+
+/* Dot remains status-colored (green/red/grey) independently from neutral pill text/border */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+  background: #9aa0a6; /* default/unknown fallback */
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset; /* subtle inner ring */
+  flex: 0 0 auto;
+}
+
+/* Status-specific dot colors only (do not change pill text/border) */
+.status-online .status-dot {
+  background: #2ecc71; /* green */
+}
+
+.status-offline .status-dot {
+  background: #e74c3c; /* red */
+}
+
+.status-unknown .status-dot {
+  background: #9aa0a6; /* grey */
+}
+
+.status-text {
+  white-space: nowrap;
+  opacity: 0.95; /* slightly softened text */
+}
+
+/* Keep pill neutral regardless of status */
+.status-online,
+.status-offline,
+.status-unknown {
+  /* Intentionally no overrides */
+}
+
+/* Interaction states: no elevation, only minimal optional color shift */
+.online-status-indicator.clickable:hover .status-pill,
+.online-status-indicator.clickable:focus-visible .status-pill,
+.online-status-indicator.clickable:active .status-pill {
+  transform: none;               /* remove translate/scale */
+  box-shadow: none;              /* no shadow */
+  outline: none;
+  border-color: var(--border-subtle, rgba(136,136,136,0.5)); /* no border change */
+  background-color: rgba(255,255,255,0.02); /* extremely subtle shift; can be removed if undesired */
+}
+
+/* Improve visibility under high contrast preferences without adding elevation */
+@media (prefers-contrast: more) {
+  .status-pill {
+    border-width: 2px; /* accessibility via stronger border only */
+    box-shadow: none;
+  }
+}
+
+/* Small screens fine-tuning */
+@media (max-width: 768px) {
+  .status-pill {
+    font-size: 11px;
+    padding: 5px 8px;
+    gap: 6px;
+  }
+}
