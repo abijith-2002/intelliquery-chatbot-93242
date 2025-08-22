@@ -279,7 +279,8 @@ function ChatInput({
           accept={acceptAttr}
           multiple
           onChange={handleFileChange}
-          aria-hidden="true"
+          aria-label="Upload a file to proceed"
+          title="Upload a file to proceed"
           tabIndex={-1}
         />
         <button

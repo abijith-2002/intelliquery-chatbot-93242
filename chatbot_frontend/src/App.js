@@ -895,7 +895,7 @@ function App() {
             requiresUpload={!hasUploadedContext}
             onBlockedSend={() => pushToast('Please upload at least one file before sending a message.', 'info')}
             placeholder={
-              isLoading ? "Processing your message..." : (hasUploadedContext ? "Type your message..." : "Upload a file to enable sending...")
+              isLoading ? "Processing your message..." : (hasUploadedContext ? "Type your message..." : "Upload a file to proceed")
             }
             attachments={attachments}
             onFilesSelected={handleFilesSelected}
