@@ -18,9 +18,11 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Build endpoint dynamically using the centralized API base manager
-  const API_BASE_URL = getApiBase();
-  const REGISTER_ENDPOINT = `${API_BASE_URL.replace(/\/*$/, "")}/register`;
+  // Build endpoint lazily per submit to avoid stale base URL
+  const getRegisterEndpoint = () => {
+    const base = getApiBase() || "";
+    return `${base.replace(/\/*$/, "")}/register`;
+  };
 
   // PUBLIC_INTERFACE
   /**
@@ -73,7 +75,7 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
     setApiError("");
 
     try {
-      const resp = await fetch(REGISTER_ENDPOINT, {
+      const resp = await fetch(getRegisterEndpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -97,7 +99,7 @@ function RegisterForm({ onSuccess, onNavigateLogin }) {
     } catch (err) {
       // Provide helpful hint for CORS/network troubleshooting
       console.error("Register request failed:", err);
-      const base = API_BASE_URL || "(unset)";
+      const base = getApiBase() || "(unset)";
       setApiError(
         `Network error. Check that the backend is reachable at ${base} and that CORS allows this origin.`
       );

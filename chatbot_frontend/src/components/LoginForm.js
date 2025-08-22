@@ -18,9 +18,11 @@ function LoginForm({ onSuccess, onNavigateRegister }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Build endpoint dynamically using the centralized API base manager
-  const API_BASE_URL = getApiBase();
-  const LOGIN_ENDPOINT = `${API_BASE_URL.replace(/\/*$/, "")}/login`;
+  // Build endpoint lazily per submit to avoid stale base URL
+  const getLoginEndpoint = () => {
+    const base = getApiBase() || "";
+    return `${base.replace(/\/*$/, "")}/login`;
+  };
 
   // PUBLIC_INTERFACE
   /**
@@ -70,7 +72,7 @@ function LoginForm({ onSuccess, onNavigateRegister }) {
     setLoading(true);
     setApiError("");
     try {
-      const resp = await fetch(LOGIN_ENDPOINT, {
+      const resp = await fetch(getLoginEndpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -91,7 +93,7 @@ function LoginForm({ onSuccess, onNavigateRegister }) {
       }
     } catch (err) {
       console.error("Login request failed:", err);
-      const base = API_BASE_URL || "(unset)";
+      const base = getApiBase() || "(unset)";
       setApiError(
         `Network error. Check that the backend is reachable at ${base} and that CORS allows this origin.`
       );

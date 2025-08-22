@@ -20,7 +20,11 @@
 const SESSION_KEY = 'api_base_url_session';
 const LOCAL_KEY = 'api_base_url_local';
 
-// In-memory runtime override
+/**
+ * In-memory runtime override
+ * Note: Consumers should call getApiBase() at call time to avoid stale values
+ * if the override is changed during the app lifecycle.
+ */
 let apiBaseOverride = null;
 
 // Try initializing from persisted storage
