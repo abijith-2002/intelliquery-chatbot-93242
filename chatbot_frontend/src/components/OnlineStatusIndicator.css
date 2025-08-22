@@ -15,6 +15,9 @@
   border: 1px solid transparent;
   border-radius: 999px; /* pill */
   padding: 6px 10px;
+  /* Add a stable height so text is centered within the pill across fonts */
+  min-height: 28px;
+  line-height: 1; /* normalize */
   cursor: pointer;
   z-index: 10000;
   transition: border-color var(--transition-fast, 150ms ease), background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
@@ -52,6 +55,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  /* Prevent descender clipping and enforce vertical centering */
+  height: 100%;
 }
 
 /* Inline variant when used inside the header next to the title */
@@ -66,6 +72,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  /* normalize height in inline usage as well */
+  min-height: 24px;
+  line-height: 1;
 }
 
 .brand-with-status .online-indicator-wrap:hover {
