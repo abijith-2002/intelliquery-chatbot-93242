@@ -24,14 +24,14 @@
   /* Neutral text and border to fit dark theme */
   color: var(--text-secondary, #c9c9c9);
   border: 1.5px solid var(--border-subtle, rgba(136,136,136,0.5));
-  /* Removed shadow to keep minimal flat appearance */
+  /* Keep minimal flat appearance */
   box-shadow: none;
   user-select: none;
   transition:
     opacity var(--transition-fast, 150ms ease),
     border-color var(--transition-fast, 150ms ease),
-    transform var(--transition-fast, 150ms ease),
-    color var(--transition-fast, 150ms ease);
+    color var(--transition-fast, 150ms ease),
+    background-color var(--transition-fast, 150ms ease);
 }
 
 /* Dot remains status-colored (green/red/grey) independently from neutral pill text/border */
@@ -63,27 +63,28 @@
   opacity: 0.95; /* slightly softened text */
 }
 
-/* Remove color/border overrides from status tokens to keep pill neutral */
+/* Keep pill neutral regardless of status */
 .status-online,
 .status-offline,
 .status-unknown {
-  /* No color or border-color overrides here to retain neutral styling */
+  /* Intentionally no overrides */
 }
 
-/* Hover feedback on the container affects only the pill subtly */
+/* Interaction states: no elevation, only minimal optional color shift */
 .online-status-indicator.clickable:hover .status-pill,
-.online-status-indicator.clickable:focus-visible .status-pill {
-  transform: translateY(-0.5px);
-  /* Remove any shadow on hover/focus to maintain clean minimal look */
-  box-shadow: none;
+.online-status-indicator.clickable:focus-visible .status-pill,
+.online-status-indicator.clickable:active .status-pill {
+  transform: none;               /* remove translate/scale */
+  box-shadow: none;              /* no shadow */
   outline: none;
+  border-color: var(--border-subtle, rgba(136,136,136,0.5)); /* no border change */
+  background-color: rgba(255,255,255,0.02); /* extremely subtle shift; can be removed if undesired */
 }
 
-/* Improve visibility under high contrast preferences */
+/* Improve visibility under high contrast preferences without adding elevation */
 @media (prefers-contrast: more) {
   .status-pill {
-    border-width: 2px;
-    /* Keep accessibility via stronger border only; no shadow */
+    border-width: 2px; /* accessibility via stronger border only */
     box-shadow: none;
   }
 }
