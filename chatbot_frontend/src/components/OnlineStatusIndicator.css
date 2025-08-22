@@ -1,36 +1,70 @@
-.online-indicator {
+/* New pill-shaped wrapper with dot + text */
+.online-indicator-wrap {
   position: fixed;
-  right: 14px;
-  bottom: 14px;
-  width: 12px;
-  height: 12px;
-  border-radius: 9999px;
-  border: 2px solid rgba(255,255,255,0.8);
-  background: #ef4444; /* red by default */
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-secondary, #d1d5db);
+  border: 1px solid transparent;
+  border-radius: 999px; /* pill */
+  padding: 6px 10px;
   cursor: pointer;
   z-index: 10000;
+  transition: border-color var(--transition-fast, 150ms ease), background var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
 }
-.online-indicator.online { background: #22c55e; } /* green */
-.online-indicator.offline { background: #ef4444; } /* red */
 
-.online-indicator:focus-visible {
-  outline: 2px solid var(--accent-blue);
+.online-indicator-wrap:hover {
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary, #fff);
+}
+
+.online-indicator-wrap:focus-visible {
+  outline: 2px solid var(--accent-blue, #3b82f6);
   outline-offset: 3px;
 }
 
-/* Inline variant when used inside the header next to the title */
-.brand-with-status .online-indicator {
-  position: static;           /* no fixed positioning in header */
+.online-indicator-wrap .status-dot {
   width: 10px;
   height: 10px;
-  border: 2px solid rgba(255,255,255,0.5);
-  box-shadow: none;
-  opacity: 0.9;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.25);
+  border: 2px solid rgba(255,255,255,0.6);
+  background: #ef4444;
 }
 
-.brand-with-status .online-indicator:hover {
-  border-color: rgba(255,255,255,0.75);
+.online-indicator-wrap.online .status-dot { background: #22c55e; } /* green */
+.online-indicator-wrap.offline .status-dot { background: #ef4444; } /* red */
+
+.online-indicator-wrap .status-text {
+  font-size: 12.5px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+/* Inline variant when used inside the header next to the title */
+.brand-with-status .online-indicator-wrap {
+  position: static;
+  padding: 4px 8px;
+  gap: 6px;
+  background: transparent;
+  border-color: transparent;
+}
+
+.brand-with-status .online-indicator-wrap:hover {
+  border-color: rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.04);
+}
+
+.brand-with-status .online-indicator-wrap .status-dot {
+  width: 8px;
+  height: 8px;
+  box-shadow: none;
+  border: 1.8px solid rgba(255,255,255,0.45);
+  opacity: 0.95;
 }
 
 /* Simple inline panel centered using fixed position, reusing app design tokens */

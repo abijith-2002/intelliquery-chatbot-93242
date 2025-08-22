@@ -2,6 +2,7 @@ import React from 'react';
 import './Header.css';
 import MinimalChatIcon from './icons/MinimalChatIcon';
 import OnlineStatusIndicator from './OnlineStatusIndicator';
+import MinimalLogoutIcon from './icons/MinimalLogoutIcon';
 
 /**
  * Header component for the Knowledge Chat interface
@@ -85,9 +86,7 @@ function Header({ onToggleSidebar, isSidebarOpen, onLogout }) {
           aria-label="Logout"
           title="Logout"
         >
-          <span className="logout-icon" role="img" aria-label="Logout Icon">
-            🔒
-          </span>
+          <MinimalLogoutIcon size={18} />
           <span className="logout-text">Logout</span>
         </button>
       )}

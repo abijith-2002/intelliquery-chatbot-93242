@@ -77,14 +77,16 @@ function OnlineStatusIndicator() {
 
   return (
     <>
+      {/* Dot + text in a single interactive pill with shared hover */}
       <button
         type="button"
-        className={`online-indicator ${online ? 'online' : 'offline'}`}
+        className={`online-indicator-wrap ${online ? 'online' : 'offline'}`}
         onClick={handleOpen}
         aria-label={online ? 'Backend online. Click to configure API base URL.' : 'Backend offline. Click to configure API base URL.'}
         title={dotTitle}
       >
-        <span className="sr-only">{online ? 'Online' : 'Offline'}</span>
+        <span aria-hidden="true" className="status-dot" />
+        <span className="status-text">{online ? 'Online' : 'Offline'}</span>
       </button>
 
       <ModalDialog
