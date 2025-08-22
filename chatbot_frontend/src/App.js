@@ -855,7 +855,6 @@ function App() {
               {messages.length === 0 && !isLoading ? (
                 <div className="chat-welcome">
                   <div className="welcome-content">
-                    <div className="welcome-icon">💬</div>
                     <h2 className="welcome-title" aria-live="polite">
                       {(() => {
                         // Persist a random welcome message per chat session.

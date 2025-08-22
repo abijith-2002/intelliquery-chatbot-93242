@@ -144,11 +144,7 @@ body {
   padding: var(--space-6);
 }
 
-.welcome-icon {
-  font-size: 48px;
-  margin-bottom: var(--space-6);
-  display: block;
-}
+/* .welcome-icon removed as the icon is no longer shown in empty state */
 
 .welcome-title {
   font-size: 24px;
