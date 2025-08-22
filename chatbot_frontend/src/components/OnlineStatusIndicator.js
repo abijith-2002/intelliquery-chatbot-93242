@@ -9,8 +9,9 @@ import { getApiBase, setApiBase } from '../utils/apiBase';
  * A minimal, reusable component that periodically checks the backend API root ('/') to determine online status.
  * - Uses session-scoped API base via getApiBase() (falls back to REACT_APP_API_BASE_URL).
  * - Polls every `intervalMs` milliseconds (default: 5000ms).
- * - Renders a small circular indicator: green when online, red when offline, with a tooltip title.
- * - Click the indicator to open a dialog to change the API base URL for the current session.
+ * - Renders a small circular indicator and an adjacent pill with status text:
+ *   - green for Online, red for Offline, grey for Unknown.
+ * - Click the indicator area to open a dialog to change the API base URL for the current session.
  *
  * Props:
  * - intervalMs?: number - polling interval in milliseconds (default 5000)
@@ -23,7 +24,8 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
   const [currentBase, setCurrentBase] = useState(getApiBase());
   const [pingKey, setPingKey] = useState(0); // trigger re-poll on base change
 
-  const pingUrl = useMemo(() => `${(currentBase || '').replace(/\/+$/, '')}/`, [currentBase]);
+  // Normalize base and generate ping URL
+  const pingUrl = useMemo(() => `${(currentBase || '').replace(/\/*$/, '')}/`, [currentBase]);
 
   useEffect(() => {
     let isMounted = true;
@@ -34,7 +36,7 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
         const resp = await fetch(pingUrl, {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
         });
         if (!isMounted) return;
@@ -58,8 +60,8 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
     // Depend on interval and pingUrl so changes to base trigger new polling target
   }, [intervalMs, pingUrl, pingKey]);
 
-  const statusClass =
-    online === null ? 'status-unknown' : online ? 'status-online' : 'status-offline';
+  const statusClass = online === null ? 'status-unknown' : online ? 'status-online' : 'status-offline';
+  const statusText = online === null ? 'Unknown' : online ? 'Online' : 'Offline';
 
   const title =
     online === null
@@ -77,7 +79,7 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
 
   const handleConfirm = useCallback((value) => {
     // Normalize and save in session override
-    const next = (value || '').trim().replace(/\/+$/, '');
+    const next = (value || '').trim().replace(/\/*$/, '');
     setApiBase(next);
     setCurrentBase(next);
     // Trigger a re-poll
@@ -103,6 +105,9 @@ export default function OnlineStatusIndicator({ intervalMs = 5000, className = '
         }}
       >
         <span className={`status-dot ${statusClass}`} />
+        <span className={`status-pill ${statusClass}`} aria-hidden="true">
+          {statusText}
+        </span>
       </div>
 
       <ModalDialog

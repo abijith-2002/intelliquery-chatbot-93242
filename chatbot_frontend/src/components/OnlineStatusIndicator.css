@@ -2,13 +2,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px; /* a bit more space for dot + pill */
 }
 
 .online-status-indicator.clickable {
   cursor: pointer;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background-color var(--transition-fast, 150ms ease);
 }
 
@@ -24,8 +24,23 @@
   border-radius: 999px;
   display: inline-block;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+  flex: 0 0 auto;
 }
 
+/* Pill styling */
+.status-pill {
+  line-height: 1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px; /* pill shape */
+  color: #0b121b; /* dark text for contrast on colored pill */
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.25);
+  user-select: none;
+  transition: opacity var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease);
+}
+
+/* Colors for statuses (shared between dot and pill) */
 .status-online {
   background-color: #2ecc71; /* green */
 }
@@ -36,4 +51,22 @@
 
 .status-unknown {
   background-color: #888888; /* grey */
+}
+
+/* Improve readability of pill text on dark background contexts */
+@media (prefers-contrast: more) {
+  .status-pill {
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
+  }
+}
+
+/* Small screens fine-tuning */
+@media (max-width: 768px) {
+  .online-status-indicator {
+    gap: 6px;
+  }
+  .status-pill {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
 }
