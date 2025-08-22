@@ -10,7 +10,7 @@
   transition: background-color var(--transition-fast, 150ms ease);
 }
 
-/* Unified pill containing dot + text and carrying the status color */
+/* Unified pill containing dot + text with transparent background and colored border */
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -20,52 +20,62 @@
   font-weight: 600;
   padding: 6px 10px;
   border-radius: 999px; /* pill shape */
-  color: #0b121b; /* dark text for contrast on colored pill */
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.25);
+  background-color: transparent; /* no fill */
+  color: #e6e6e6; /* light, legible on dark theme */
+  border: 1.5px solid rgba(136,136,136,0.65); /* default grey border */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25); /* subtle elevation only */
   user-select: none;
-  transition: opacity var(--transition-fast, 150ms ease), background-color var(--transition-fast, 150ms ease), transform var(--transition-fast, 150ms ease);
+  transition: opacity var(--transition-fast, 150ms ease), border-color var(--transition-fast, 150ms ease), transform var(--transition-fast, 150ms ease), color var(--transition-fast, 150ms ease);
 }
 
-/* Dot is neutral, inherits pill background for cohesion */
+/* Dot styled per-status to match border color for clarity */
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
   display: inline-block;
-  background: rgba(0,0,0,0.18); /* subtle inner dot for contrast */
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.18) inset;
+  background: currentColor; /* inherits from pill's computed color */
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset; /* subtle inner ring */
   flex: 0 0 auto;
 }
 
 .status-text {
   white-space: nowrap;
+  opacity: 0.95; /* slightly softened text */
 }
 
-/* Colors for statuses (applied to pill) */
+/* Status color tokens */
 .status-online {
-  background-color: #2ecc71; /* green */
+  /* green border and dot */
+  border-color: #2ecc71;
+  color: #2ecc71;
 }
 
 .status-offline {
-  background-color: #e74c3c; /* red */
+  /* red border and dot */
+  border-color: #e74c3c;
+  color: #e74c3c;
 }
 
 .status-unknown {
-  background-color: #888888; /* grey */
+  /* grey border and dot */
+  border-color: #9aa0a6;
+  color: #9aa0a6;
 }
 
 /* Hover feedback on the container affects only the pill subtly */
 .online-status-indicator.clickable:hover .status-pill,
 .online-status-indicator.clickable:focus-visible .status-pill {
   transform: translateY(-0.5px);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   outline: none;
 }
 
-/* Improve readability of pill text on high-contrast settings */
+/* Improve visibility under high contrast preferences */
 @media (prefers-contrast: more) {
   .status-pill {
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.25);
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
   }
 }
 
